@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'constants/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,9 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Tennis Rival',
-      theme: ThemeData(
-        primarySwatch: Colors.green, // アプリの基本カラーを緑に
-      ),
+      theme: AppTheme.lightTheme,
       // アプリを起動して最初に表示する画面を指定
       home: const HomeScreen(),
     );
