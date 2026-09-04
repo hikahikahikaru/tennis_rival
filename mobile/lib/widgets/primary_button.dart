@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
-import '../theme/app_sizes.dart';
-import '../theme/app_text_styles.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_sizes.dart';
+import '../constants/app_text_styles.dart';
 
 /// 全幅で使える緑色の角丸プライマリーボタン
 class PrimaryButton extends StatelessWidget {
@@ -23,7 +23,7 @@ class PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: AppColors.primary,
           foregroundColor: AppColors.primaryText,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.primaryButtonRadius),
