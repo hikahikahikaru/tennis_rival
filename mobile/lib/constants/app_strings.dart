@@ -5,4 +5,6 @@ class AppStrings {
   static const String navEntry = '登録';
   static const String navGroup = 'グループ';
   static const String navProfile = 'マイページ';
+  // Figma用ラベル
+  static const String recordMatch = '試合結果を記録';
 }
