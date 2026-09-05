@@ -7,6 +7,21 @@ class AppTheme {
   // 「ライトモード（通常時）」のデザインルールを作ります
   static ThemeData get lightTheme {
     return ThemeData(
+      // ElevatedButtonの共通ルール（PrimaryButtonの見た目をここで定義）
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.primaryText,
+          // 高さはminimumSizeで設定（横幅はウィジェット側でstretchされる想定）
+          minimumSize: Size.fromHeight(AppSizes.primaryButtonHeight),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.primaryButtonRadius),
+          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          elevation: 0,
+        ),
+      ),
+
       // ナビゲーションバーの共通ルールをここに一極集中させます
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         // 4つ以上アイコンがあっても隠れないようにする設定

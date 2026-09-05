@@ -1,40 +1,39 @@
 import 'package:flutter/material.dart';
 
-import '../constants/app_colors.dart';
-import '../constants/app_sizes.dart';
-import '../constants/app_text_styles.dart';
-
-/// 全幅で使える緑色の角丸プライマリーボタン
+/// 全幅で使えるプライマリーボタン（見た目は AppTheme の elevatedButtonTheme に従う）
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
+  final IconData? icon;
+  final double? height;
 
   const PrimaryButton({
     super.key,
     required this.label,
     required this.onPressed,
+    this.icon,
+    this.height,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: AppSizes.primaryButtonHeight,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.primaryText,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.primaryButtonRadius),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          label,
-          style: AppTextStyles.primaryButtonLabel,
-        ),
-      ),
-    );
+    final ButtonStyle? overrideStyle = height != null
+        ? ElevatedButton.styleFrom(minimumSize: Size.fromHeight(height!))
+        : null;
+
+    final Widget button = icon == null
+        ? ElevatedButton(
+            style: overrideStyle,
+            onPressed: onPressed,
+            child: Text(label),
+          )
+        : ElevatedButton.icon(
+            style: overrideStyle,
+            onPressed: onPressed,
+            icon: Icon(icon),
+            label: Text(label),
+          );
+
+    return SizedBox(width: double.infinity, child: button);
   }
 }
