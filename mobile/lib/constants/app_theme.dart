@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_sizes.dart';
+import 'app_text_styles.dart';
 
 // アプリ全体のデザイン（色や文字サイズなどのルール）をまとめる場所
 class AppTheme {
@@ -17,7 +18,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.primaryButtonRadius),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: AppTextStyles.primaryButtonLabel,
           elevation: 0,
         ),
       ),
