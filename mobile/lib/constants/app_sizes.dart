@@ -7,4 +7,19 @@ class AppSizes {
   // PrimaryButtonで使用するサイズ
   static const double primaryButtonHeight = 56.0;
   static const double primaryButtonRadius = 12.0;
+
+  // カード共通のサイズ
+  static const double cardRadius = 16.0;
+
+  // MatchCardで使用するサイズ
+  static const double matchCardPadding = 16.0;
+  static const double matchCardIconSize = 18.0;
+  static const double matchDateIconSpacing = 12.0;
+  static const double matchDateDividerWidth = 1.0;
+  static const double matchDateDividerHeight = 28.0;
+  static const double matchResultSpacing = 12.0;
+  static const double matchContentSpacing = 4.0;
+  static const double matchCardStatusHorizontalPadding = 12.0;
+  static const double matchCardStatusVerticalPadding = 8.0;
+  static const double matchCardStatusRadius = 999.0;
 }
