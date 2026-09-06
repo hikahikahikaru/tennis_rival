@@ -7,4 +7,7 @@ class AppStrings {
   static const String navProfile = 'マイページ';
   // Figma用ラベル
   static const String recordMatch = '試合結果を記録';
+  static const String matchCardWin = 'WIN';
+  static const String matchCardLose = 'LOSE';
+  static const String matchCardVs = 'vs';
 }
