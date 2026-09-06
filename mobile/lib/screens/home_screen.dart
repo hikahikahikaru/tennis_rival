@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-// import '../widgets/match_card.dart'; // 後で部品を使う時にコメント解除
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/primary_button.dart';
+import '../constants/app_strings.dart';
+import 'match_entry_screen.dart'; // ← 追加：登録画面を読み込む
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -11,16 +13,27 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Tennis Rival - ホーム'),
       ),
-      body: const Center(
-        // TODO: 担当者へ - ここにホーム画面のUI（こんにちは〇〇さん、今月の戦績など）を実装してください。
-        // 「最近の試合」リストは、下で作成する MatchCard ウィジェットを並べて表示するイメージです。
-        child: Text('ホーム画面のUIをここに実装'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: PrimaryButton(
+            label: AppStrings.recordMatch,
+            // icon: Icons.add, // もし相方さんがアイコン対応を完了していればコメント解除
+            onPressed: () {
+              // ↓ 追加：ボタンを押したら登録画面へ移動する処理
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MatchEntryScreen(),
+                ),
+              );
+            },
+          ),
+        ),
       ),
-      //下部のナビゲーション
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: 0,
         onTap: (index) {
-          // TODO: 後で画面遷移の処理を書く
           print('タブ $index が押されました');
         },
       ),
