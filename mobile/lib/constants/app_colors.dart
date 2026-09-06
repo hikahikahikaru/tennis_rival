@@ -7,4 +7,13 @@ class AppColors {
   static const Color borderLight =
       Color(0xFFE0E0E0); // 薄いグレーの枠線（Colors.grey.shade300相当）
   static const Color textSecondary = Colors.black54; // サブテキスト用の色
+
+  static const Color cardBackground = Colors.white; // カード共通の背景色
+  static const Color cardBorder = Color(0xFFE2EAE3); // カード共通の枠線色
+  static const Color matchDateText = Color(0xFF53615E); // 日付の文字色
+  static const Color matchOpponentText = Color(0xFF1F2421); // 相手名/スコアの文字色
+  static const Color matchWin = Color(0xFF13643B); // WINの文字色
+  static const Color matchWinBackground = Color(0xFFEAF4EE); // WINの背景色
+  static const Color matchLose = Color(0xFFB3261E); // LOSEの文字色
+  static const Color matchLoseBackground = Color(0xFFFDE9E8); // LOSEの背景色
 }

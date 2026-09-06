@@ -8,6 +8,15 @@ class AppTheme {
   // 「ライトモード（通常時）」のデザインルールを作ります
   static ThemeData get lightTheme {
     return ThemeData(
+      cardTheme: const CardTheme(
+        color: AppColors.cardBackground,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppSizes.cardRadius)),
+          side: BorderSide(color: AppColors.cardBorder),
+        ),
+      ),
       // ElevatedButtonの共通ルール（PrimaryButtonの見た目をここで定義）
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
