@@ -10,6 +10,9 @@ enum MatchFormat {
   final int dbValue;
   final String label;
 
+  /// セット数（画面ロジック用）
+  int get setCount => dbValue;
+
   // コンストラクタ（お約束）
   const MatchFormat(this.dbValue, this.label);
 }

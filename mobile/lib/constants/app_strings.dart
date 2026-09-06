@@ -19,4 +19,14 @@ class AppStrings {
   static const String matchCardWin = 'WIN';
   static const String matchCardLose = 'LOSE';
   static const String matchCardVs = 'vs';
+  // Score 入力周り
+  static const String scoreSectionTitle = 'スコア';
+  static const String scoreMy = '自分';
+  static const String scoreOpponent = '相手';
+  static const String scoreSet = 'セット';
+  // スコア選択UI
+  static const String scoreClear = 'クリア';
+  static const String scoreOther = 'その他';
+  static const String scoreTiebreakerLabel = 'タイブレーク';
+  static const String scoreTiebreakerFormat = '（自分のポイント - 相手のポイント）';
 }

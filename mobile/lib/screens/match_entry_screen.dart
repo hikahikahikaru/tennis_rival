@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../constants/app_colors.dart';
+import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
+import '../constants/app_text_styles.dart';
+
 import '../models/match_format.dart';
-import '../widgets/selection_field.dart';
+
 import '../widgets/match_date_picker.dart';
 import '../widgets/opponent_picker_sheet.dart';
+import '../widgets/score_input_row.dart';
+import '../widgets/selection_field.dart';
 
 class MatchEntryScreen extends StatefulWidget {
   const MatchEntryScreen({super.key});
@@ -19,6 +25,43 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
   DateTime _selectedDate = DateTime.now();
   String _selectedOpponent = '未選択';
   MatchFormat _selectedFormat = MatchFormat.threeSets;
+
+  // 親が管理するコントローラ群（モデルの setCount を参照して用意）
+  late final List<TextEditingController> _myScoreControllers;
+  late final List<TextEditingController> _opponentScoreControllers;
+  late final List<TextEditingController> _myTiebreakerControllers;
+  late final List<TextEditingController> _opponentTiebreakerControllers;
+
+  @override
+  void initState() {
+    super.initState();
+    final maxSets = MatchFormat.threeSets.setCount;
+    _myScoreControllers =
+        List.generate(maxSets, (_) => TextEditingController());
+    _opponentScoreControllers =
+        List.generate(maxSets, (_) => TextEditingController());
+    _myTiebreakerControllers =
+        List.generate(maxSets, (_) => TextEditingController());
+    _opponentTiebreakerControllers =
+        List.generate(maxSets, (_) => TextEditingController());
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _myScoreControllers) {
+      controller.dispose();
+    }
+    for (final controller in _opponentScoreControllers) {
+      controller.dispose();
+    }
+    for (final controller in _myTiebreakerControllers) {
+      controller.dispose();
+    }
+    for (final controller in _opponentTiebreakerControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
 
   // カレンダー部品を呼び出す処理
   Future<void> _handleDateSelection() async {
@@ -96,6 +139,52 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
                   selectedForegroundColor: Colors.white,
                 ),
                 showSelectedIcon: false,
+              ),
+            ),
+            const SizedBox(height: AppSizes.scoreSectionSpacing),
+            const Text(
+              AppStrings.scoreSectionTitle,
+              style: AppTextStyles.scoreSectionTitle,
+            ),
+            const SizedBox(height: AppSizes.scoreHeaderSpacing),
+            // ヘッダー（自分 / 相手）を一度だけ表示
+            const Row(
+              children: [
+                SizedBox(width: AppSizes.scoreSetLabelWidth),
+                SizedBox(width: AppSizes.scoreInputSpacing),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppStrings.scoreMy,
+                          style: AppTextStyles.scoreInputHeader,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(width: AppSizes.scoreInputSpacing),
+                      Expanded(
+                        child: Text(
+                          AppStrings.scoreOpponent,
+                          style: AppTextStyles.scoreInputHeader,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSizes.scoreHeaderSpacing),
+            // スコア行の数を切り替え（モデルの setCount を参照）
+            ...List.generate(
+              _selectedFormat.setCount,
+              (i) => ScoreInputRow(
+                setNumber: i + 1,
+                myScoreController: _myScoreControllers[i],
+                opponentScoreController: _opponentScoreControllers[i],
+                myTiebreakerController: _myTiebreakerControllers[i],
+                opponentTiebreakerController: _opponentTiebreakerControllers[i],
               ),
             ),
           ],
