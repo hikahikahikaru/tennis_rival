@@ -32,4 +32,24 @@ class AppSizes {
   static const double matchCardStatusHorizontalPadding = 12.0;
   static const double matchCardStatusVerticalPadding = 8.0;
   static const double matchCardStatusRadius = 999.0;
+
+  // ScoreInputRow 用のサイズ
+  static const double scoreSetLabelWidth = 88.0;
+  static const double scoreInputSpacing = 12.0;
+  static const double scoreRowVerticalPadding = 8.0;
+  static const double scoreInputVerticalPadding = 12.0;
+  static const double scoreInputHorizontalPadding = 8.0;
+  static const double scoreSectionSpacing = 16.0;
+  static const double scoreHeaderSpacing = 8.0;
+
+  // スコア選択UI（ボトムシート・ダイアログ等）関連のサイズ
+  static const double scoreBottomSheetOptionHeight = 48.0;
+  static const double scoreBottomSheetPadding = 16.0;
+  static const double scoreTiebreakerSpacing = 12.0;
+  static const double scoreGridSpacing = 8.0;
+  static const double scoreGridRunSpacing = 8.0;
+  static const double scoreNumberButtonWidth = 72.0;
+  static const double scoreNumberButtonHeight = scoreBottomSheetOptionHeight;
+  static const double scoreNumberWrapSpacing = scoreGridSpacing;
+  static const double scoreNumberWrapRunSpacing = scoreGridRunSpacing;
 }
