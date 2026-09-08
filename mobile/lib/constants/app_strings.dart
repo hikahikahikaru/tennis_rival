@@ -29,4 +29,10 @@ class AppStrings {
   static const String scoreOther = 'その他';
   static const String scoreTiebreakerLabel = 'タイブレーク';
   static const String scoreTiebreakerFormat = '（自分のポイント - 相手のポイント）';
+  // 完了画面（RequestSent）で使用
+  static const String requestSentTitle = '確認依頼';
+  static const String requestSentMain = '確認依頼を送信しました';
+  static String requestSentSub(String opponentName) => '$opponentNameさんの確認待ちです';
+  static const String requestSentDetail = '対戦相手に通知を送信しました';
+  static const String returnToHome = 'ホームに戻る';
 }

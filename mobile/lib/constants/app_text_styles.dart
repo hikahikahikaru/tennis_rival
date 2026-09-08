@@ -77,4 +77,22 @@ class AppTextStyles {
     fontSize: 12,
     color: AppColors.textSecondary,
   );
+
+  // 完了画面関連のテキストスタイル
+  static const TextStyle successTitle = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    color: AppColors.primary,
+  );
+
+  static const TextStyle successSubTitle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle successDetail = TextStyle(
+    fontSize: 12,
+    color: AppColors.textSecondary,
+  );
 }
