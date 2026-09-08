@@ -88,7 +88,7 @@ class AppTextStyles {
   static const TextStyle successSubTitle = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.bold,
-    color: AppColors.primaryText,
+    color: AppColors.matchOpponentText,
   );
 
   static const TextStyle successDetail = TextStyle(
