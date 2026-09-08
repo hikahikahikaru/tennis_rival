@@ -16,4 +16,8 @@ class AppColors {
   static const Color matchWinBackground = Color(0xFFEAF4EE); // WINの背景色
   static const Color matchLose = Color(0xFFB3261E); // LOSEの文字色
   static const Color matchLoseBackground = Color(0xFFFDE9E8); // LOSEの背景色
+
+  // アイコン背景などのアクセントカラー
+  static const Color successBackground = Color(0xFFE8F5E9); // 薄い緑（チェックマークの背景）
+  static const Color successIcon = Color(0xFF424242); // 濃いグレー（チェックマーク自体）
 }

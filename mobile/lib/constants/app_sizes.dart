@@ -52,4 +52,15 @@ class AppSizes {
   static const double scoreNumberButtonHeight = scoreBottomSheetOptionHeight;
   static const double scoreNumberWrapSpacing = scoreGridSpacing;
   static const double scoreNumberWrapRunSpacing = scoreGridRunSpacing;
+
+  // 完了画面関連のサイズ
+  static const double successIconCircleSize = 100.0;
+  static const double successIconSize = 48.0;
+
+  // 画面全体の共通サイズ
+  static const double screenPadding = 16.0;
+
+  // 余白・すき間のサイズ（spacingSmall = 4.0の下に追加）
+  static const double spacingMedium = 12.0;
+  static const double spacingLarge = 24.0;
 }
