@@ -9,11 +9,22 @@ CREATE TABLE public.groups (
 CREATE TABLE public.users (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id),
   user_name TEXT NOT NULL UNIQUE,
-  group_id UUID REFERENCES public.groups(group_id),
+  -- group_id UUID REFERENCES public.groups(group_id), <-- 削除！
   others TEXT,
   dt_created TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc', now()),
   dt_updated TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc', now())
 );
+
+-- ▼▼▼ 新規追加: ユーザーとグループの中間テーブル ▼▼▼
+CREATE TABLE public.group_members (
+  group_id UUID REFERENCES public.groups(group_id) ON DELETE CASCADE,
+  user_id UUID REFERENCES public.users(user_id) ON DELETE CASCADE,
+  role SMALLINT DEFAULT 1, -- 1: 一般, 2: 管理者
+  dt_created TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc', now()),
+  dt_updated TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc', now()),
+  PRIMARY KEY (group_id, user_id)
+);
+-- ▲▲▲ ここまで ▲▲▲
 
 CREATE TABLE public.matches (
   match_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
