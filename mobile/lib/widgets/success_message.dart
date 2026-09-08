@@ -40,7 +40,7 @@ class SuccessMessage extends StatelessWidget {
           AppStrings.requestSentSub(opponentName),
           style: AppTextStyles.successSubTitle,
         ),
-        const SizedBox(height: AppSizes.spacingSmall), // ここは既存の4.0か8.0で調整
+        const SizedBox(height: AppSizes.spacingSmall),
         const Text(
           AppStrings.requestSentDetail,
           style: AppTextStyles.successDetail,
