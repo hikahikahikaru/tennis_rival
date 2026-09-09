@@ -95,4 +95,17 @@ class AppTextStyles {
     fontSize: 12,
     color: AppColors.textSecondary,
   );
+
+  // MatchConfirmScreen 用のテキストスタイル
+  static const TextStyle matchConfirmResultScore = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle matchConfirmNotice = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+    color: AppColors.primary,
+  );
 }

@@ -35,4 +35,17 @@ class AppStrings {
   static String requestSentSub(String opponentName) => '$opponentNameさんの確認待ちです';
   static const String requestSentDetail = '対戦相手に通知を送信しました';
   static const String returnToHome = 'ホームに戻る';
+
+  // 確認画面
+  static const String matchConfirmTitle = '入力内容を確認';
+  static const String matchConfirmResult = '試合結果';
+  static const String matchConfirmMemo = '個人メモ';
+  static const String matchConfirmMemoNote = '相手には表示されません';
+  static const String matchConfirmMemoEmpty = 'なし';
+  static const String matchConfirmWin = 'あなたの勝ち';
+  static const String matchConfirmLose = 'あなたの負け';
+  static const String matchConfirmUndecided = '結果未確定';
+  static const String matchConfirmNotice = '送信後は相手の承認まで「確認待ち」になります';
+  static const String matchConfirmEdit = '修正する';
+  static const String matchConfirmRequest = '相手に確認依頼を送る';
 }
