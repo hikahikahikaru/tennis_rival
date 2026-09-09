@@ -7,11 +7,15 @@ import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 
 import '../models/match_format.dart';
+import '../models/match_set_score.dart';
 
+import '../widgets/primary_button.dart';
 import '../widgets/match_date_picker.dart';
 import '../widgets/opponent_picker_sheet.dart';
 import '../widgets/score_input_row.dart';
 import '../widgets/selection_field.dart';
+import 'match_confirm_screen.dart';
+import 'request_sent_screen.dart';
 
 class MatchEntryScreen extends StatefulWidget {
   const MatchEntryScreen({super.key});
@@ -71,6 +75,97 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
         _selectedDate = picked;
       });
     }
+  }
+
+  int? _parseOptionalScore(TextEditingController controller) {
+    final value = controller.text.trim();
+    if (value.isEmpty) {
+      return null;
+    }
+
+    return int.tryParse(value);
+  }
+
+  List<MatchSetScore>? _buildConfirmSetScores() {
+    final setScores = <MatchSetScore>[];
+    final setsRequiredToWin = (_selectedFormat.setCount ~/ 2) + 1;
+    var myWonSetCount = 0;
+    var opponentWonSetCount = 0;
+
+    for (var i = 0; i < _selectedFormat.setCount; i++) {
+      final myScore = int.tryParse(_myScoreControllers[i].text.trim());
+      final opponentScore =
+          int.tryParse(_opponentScoreControllers[i].text.trim());
+
+      if (myScore == null || opponentScore == null) {
+        return null;
+      }
+
+      final setScore = MatchSetScore(
+        myScore: myScore,
+        opponentScore: opponentScore,
+        myTiebreakScore: _parseOptionalScore(_myTiebreakerControllers[i]),
+        opponentTiebreakScore:
+            _parseOptionalScore(_opponentTiebreakerControllers[i]),
+      );
+      setScores.add(setScore);
+
+      if (myScore == opponentScore) {
+        continue;
+      }
+
+      if (setScore.isMyWin) {
+        myWonSetCount++;
+      } else {
+        opponentWonSetCount++;
+      }
+
+      if (myWonSetCount >= setsRequiredToWin ||
+          opponentWonSetCount >= setsRequiredToWin) {
+        return setScores;
+      }
+    }
+
+    return null;
+  }
+
+  void _showScoreRequiredMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(AppStrings.matchEntryScoreRequired),
+      ),
+    );
+  }
+
+  void _handleConfirmPressed() {
+    final setScores = _buildConfirmSetScores();
+    if (setScores == null) {
+      _showScoreRequiredMessage();
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (confirmContext) => MatchConfirmScreen(
+          matchDate: _selectedDate,
+          opponentName: _selectedOpponent,
+          matchFormat: _selectedFormat,
+          setScores: setScores,
+          onEdit: () => Navigator.pop(confirmContext),
+          onRequestConfirmation: () {
+            Navigator.push(
+              confirmContext,
+              MaterialPageRoute(
+                builder: (requestSentContext) => RequestSentScreen(
+                  opponentName: _selectedOpponent,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -186,6 +281,11 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
                 myTiebreakerController: _myTiebreakerControllers[i],
                 opponentTiebreakerController: _opponentTiebreakerControllers[i],
               ),
+            ),
+            const SizedBox(height: AppSizes.spacingLarge),
+            PrimaryButton(
+              label: AppStrings.matchConfirmTitle,
+              onPressed: _handleConfirmPressed,
             ),
           ],
         ),

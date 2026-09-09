@@ -15,6 +15,7 @@ class AppStrings {
   static const String matchFormat = '試合形式';
   static const String oneSet = '1セット';
   static const String threeSets = '3セット';
+  static const String matchEntryScoreRequired = '通常スコアを入力してください';
   static const String dummyOpponentSearch = 'ここに将来、対戦相手の検索・選択UIが入ります';
   static const String matchCardWin = 'WIN';
   static const String matchCardLose = 'LOSE';
