@@ -6,6 +6,7 @@ import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 import '../models/match_format.dart';
+import '../models/match_score.dart';
 import '../models/match_set_score.dart';
 import '../widgets/primary_button.dart';
 
@@ -31,24 +32,22 @@ class MatchConfirmScreen extends StatelessWidget {
 
   String get _formattedDate => DateFormat('yyyy年M月d日').format(matchDate);
 
-  int get _setsRequiredToWin => (matchFormat.setCount ~/ 2) + 1;
-
-  Iterable<MatchSetScore> get _targetSetScores =>
-      setScores.take(matchFormat.setCount);
-
-  Iterable<MatchSetScore> get _decidedSetScores => _targetSetScores.where(
-        (setScore) => setScore.myScore != setScore.opponentScore,
+  MatchScore get _matchScore => MatchScore(
+        matchFormat: matchFormat,
+        setScores: setScores,
       );
 
-  int get _myWonSetCount =>
-      _decidedSetScores.where((setScore) => setScore.isMyWin).length;
+  List<MatchSetScore> get _targetSetScores =>
+      _matchScore.confirmedSetScores ??
+      setScores.take(matchFormat.setCount).toList();
 
-  int get _opponentWonSetCount =>
-      _decidedSetScores.where((setScore) => !setScore.isMyWin).length;
+  int get _myWonSetCount => _matchScore.myWonSetCount;
 
-  bool get _isMyMatchWin => _myWonSetCount >= _setsRequiredToWin;
+  int get _opponentWonSetCount => _matchScore.opponentWonSetCount;
 
-  bool get _isOpponentMatchWin => _opponentWonSetCount >= _setsRequiredToWin;
+  bool get _isMyMatchWin => _matchScore.isMyMatchWin;
+
+  bool get _isOpponentMatchWin => _matchScore.isOpponentMatchWin;
 
   String get _resultLabel {
     if (_isMyMatchWin) {

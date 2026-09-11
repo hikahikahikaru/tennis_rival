@@ -154,7 +154,7 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
             ),
             const SizedBox(height: AppSizes.scoreSectionSpacing),
             ScoreInputSection(
-              setCount: _selectedFormat.setCount,
+              matchFormat: _selectedFormat,
               onScoresChanged: _handleScoresChanged,
             ),
             const SizedBox(height: AppSizes.spacingLarge),

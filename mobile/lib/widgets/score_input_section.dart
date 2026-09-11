@@ -3,17 +3,19 @@ import 'package:flutter/material.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
+import '../models/match_format.dart';
+import '../models/match_score.dart';
 import '../models/match_set_score.dart';
 import 'score_input_row.dart';
 
 /// Controllerを内部管理し、試合として成立したスコアだけ親へ通知する。
 class ScoreInputSection extends StatefulWidget {
-  final int setCount;
+  final MatchFormat matchFormat;
   final ValueChanged<List<MatchSetScore>?> onScoresChanged;
 
   const ScoreInputSection({
     super.key,
-    required this.setCount,
+    required this.matchFormat,
     required this.onScoresChanged,
   });
 
@@ -30,15 +32,15 @@ class _ScoreInputSectionState extends State<ScoreInputSection> {
   @override
   void initState() {
     super.initState();
-    _ensureControllerCount(widget.setCount);
+    _ensureControllerCount(widget.matchFormat.setCount);
   }
 
   @override
   void didUpdateWidget(covariant ScoreInputSection oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.setCount != widget.setCount) {
-      _ensureControllerCount(widget.setCount);
+    if (oldWidget.matchFormat != widget.matchFormat) {
+      _ensureControllerCount(widget.matchFormat.setCount);
       // 親のbuild中に通知しないよう、形式変更後の再計算は次フレームに送る。
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) {
@@ -70,7 +72,7 @@ class _ScoreInputSectionState extends State<ScoreInputSection> {
     }
   }
 
-  // setCountが減ってもControllerは破棄せず、形式を戻した際の入力値を保持する。
+  // matchFormat.setCountが減ってもControllerは破棄せず、形式を戻した際の入力値を保持する。
   void _ensureControllerCount(int count) {
     while (_myScoreControllers.length < count) {
       _myScoreControllers.add(_createScoreController());
@@ -89,47 +91,40 @@ class _ScoreInputSectionState extends State<ScoreInputSection> {
     return int.tryParse(value);
   }
 
-  List<MatchSetScore>? _buildConfirmSetScores() {
-    final setScores = <MatchSetScore>[];
-    final setsRequiredToWin = (widget.setCount ~/ 2) + 1;
-    var myWonSetCount = 0;
-    var opponentWonSetCount = 0;
+  MatchSetScore? _buildInputSetScore(int index) {
+    final myScore = int.tryParse(_myScoreControllers[index].text.trim());
+    final opponentScore =
+        int.tryParse(_opponentScoreControllers[index].text.trim());
 
-    for (var i = 0; i < widget.setCount; i++) {
-      final myScore = int.tryParse(_myScoreControllers[i].text.trim());
-      final opponentScore =
-          int.tryParse(_opponentScoreControllers[i].text.trim());
-
-      if (myScore == null || opponentScore == null) {
-        return null;
-      }
-
-      final setScore = MatchSetScore(
-        myScore: myScore,
-        opponentScore: opponentScore,
-        myTiebreakScore: _parseOptionalScore(_myTiebreakerControllers[i]),
-        opponentTiebreakScore:
-            _parseOptionalScore(_opponentTiebreakerControllers[i]),
-      );
-      setScores.add(setScore);
-
-      if (myScore == opponentScore) {
-        continue;
-      }
-
-      if (setScore.isMyWin) {
-        myWonSetCount++;
-      } else {
-        opponentWonSetCount++;
-      }
-
-      if (myWonSetCount >= setsRequiredToWin ||
-          opponentWonSetCount >= setsRequiredToWin) {
-        return setScores;
-      }
+    if (myScore == null || opponentScore == null) {
+      return null;
     }
 
-    return null;
+    return MatchSetScore(
+      myScore: myScore,
+      opponentScore: opponentScore,
+      myTiebreakScore: _parseOptionalScore(_myTiebreakerControllers[index]),
+      opponentTiebreakScore:
+          _parseOptionalScore(_opponentTiebreakerControllers[index]),
+    );
+  }
+
+  List<MatchSetScore>? _buildConfirmSetScores() {
+    final setScores = <MatchSetScore>[];
+
+    for (var i = 0; i < widget.matchFormat.setCount; i++) {
+      final setScore = _buildInputSetScore(i);
+      if (setScore == null) {
+        break;
+      }
+
+      setScores.add(setScore);
+    }
+
+    return MatchScore(
+      matchFormat: widget.matchFormat,
+      setScores: setScores,
+    ).confirmedSetScores;
   }
 
   void _notifyScoresChanged() {
@@ -179,7 +174,7 @@ class _ScoreInputSectionState extends State<ScoreInputSection> {
         _buildScoreHeader(),
         const SizedBox(height: AppSizes.scoreHeaderSpacing),
         ...List.generate(
-          widget.setCount,
+          widget.matchFormat.setCount,
           (i) => ScoreInputRow(
             setNumber: i + 1,
             myScoreController: _myScoreControllers[i],
