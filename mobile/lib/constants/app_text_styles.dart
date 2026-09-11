@@ -20,6 +20,11 @@ class AppTextStyles {
     fontWeight: FontWeight.bold,
   );
 
+  static const TextStyle matchInfoTitle = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+  );
+
   static const TextStyle matchCardDate = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
