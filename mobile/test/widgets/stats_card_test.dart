@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile/constants/app_strings.dart';
 import 'package:mobile/models/user_stats.dart';
 import 'package:mobile/widgets/stats_card.dart';
 
@@ -18,14 +17,15 @@ void main() {
   testWidgets('shows record and win rate', (WidgetTester tester) async {
     await tester.pumpWidget(buildSubject());
 
-    expect(find.text(AppStrings.statsCardRecord(4, 2)), findsOneWidget);
-    expect(find.text(AppStrings.statsCardWinRate(67)), findsOneWidget);
+    // 本体と同じ文字列生成関数に依存せず、表示仕様そのものを検証する。
+    expect(find.text('4勝 2敗'), findsOneWidget);
+    expect(find.text('67%'), findsOneWidget);
   });
 
   testWidgets('shows title', (WidgetTester tester) async {
     await tester.pumpWidget(buildSubject());
 
-    expect(find.text(AppStrings.statsCardTitle), findsOneWidget);
+    expect(find.text('今月の戦績'), findsOneWidget);
   });
 
   testWidgets('is display-only without interactive widgets',
