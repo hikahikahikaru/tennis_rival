@@ -44,10 +44,13 @@ class UserRepository {
         .inFilter('group_id', groupIds)
         .neq('user_id', userId);
 
-    // 3. 取得したJSONデータをUserModelのリストに変換
-    return (response as List)
-        .map(
-            (item) => UserModel.fromJson(item['users'] as Map<String, dynamic>))
-        .toList();
+    // 3. 取得したJSONデータをUserModelに変換し、複数グループ所属による重複を user_id で排除
+    final Map<String, UserModel> uniqueUsers = {};
+    for (final item in response as List) {
+      final user = UserModel.fromJson(item['users'] as Map<String, dynamic>);
+      uniqueUsers[user.id] = user;
+    }
+
+    return uniqueUsers.values.toList();
   }
 }

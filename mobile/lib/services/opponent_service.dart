@@ -25,11 +25,17 @@ class OpponentService {
     _userRepository = repo;
   }
 
+  /// キャッシュが紐付いているユーザーID
+  String? _cachedUserId;
+
   /// メモリ上に保持する対戦相手一覧のキャッシュ
   List<UserModel>? _cachedOpponents;
 
+  /// 実行中通信の対象ユーザーID
+  String? _inFlightUserId;
+
   /// 現在実行中の非同期取得処理（Future）
-  /// 通信中に別の箇所から呼び出された場合、このFutureを共有して同じ完了を待ちます
+  /// 通信中に別の箇所から同一ユーザーで呼び出された場合、このFutureを共有して同じ完了を待ちます
   Future<List<UserModel>>? _inFlightFetch;
 
   /// キャッシュ済みの対戦相手一覧を取得します（未取得の場合は空リストを返却）
@@ -45,17 +51,20 @@ class OpponentService {
   }) async {
     final targetUserId = currentUserId ?? MockData.currentUserId;
 
-    // 1. すでにキャッシュが存在し、強制更新でなければ即座にキャッシュを返す
-    if (_cachedOpponents != null && !forceRefresh) {
+    // 1. 同一ユーザーのキャッシュが存在し、強制更新でなければ即座にキャッシュを返す
+    if (_cachedUserId == targetUserId &&
+        _cachedOpponents != null &&
+        !forceRefresh) {
       return _cachedOpponents!;
     }
 
-    // 2. すでに通信中の処理がある場合は、そのFutureを共有して完了を待つ
-    if (_inFlightFetch != null) {
+    // 2. 同一ユーザーで通信中の処理がある場合は、そのFutureを共有して完了を待つ
+    if (_inFlightUserId == targetUserId && _inFlightFetch != null) {
       return _inFlightFetch!;
     }
 
-    // 3. 新規に通信を開始し、完了するまで _inFlightFetch に保持する
+    // 3. 新規に通信を開始し、完了するまで _inFlightFetch / _inFlightUserId に保持する
+    _inFlightUserId = targetUserId;
     final fetchFuture = _fetchAndCacheOpponents(targetUserId);
     _inFlightFetch = fetchFuture;
 
@@ -68,22 +77,30 @@ class OpponentService {
       // リポジトリ経由でSupabaseから同じグループの対戦相手一覧を取得
       final opponents = await _userRepository.fetchGroupOpponents(userId);
 
-      // 取得結果をメモリキャッシュに保存
-      _cachedOpponents = opponents;
+      // 通信完了時にユーザーが変わっていなければキャッシュに保存（古い通信結果による上書き防止）
+      if (_inFlightUserId == userId) {
+        _cachedUserId = userId;
+        _cachedOpponents = opponents;
+      }
       return opponents;
     } catch (e) {
       debugPrint(AppStrings.errorOpponentFetch(e));
       // 例外を上位（UI層など）に伝達してエラー画面・再試行へ繋げる
       rethrow;
     } finally {
-      // 通信完了（成功・失敗問わず）したら進行中フラグ/Futureをクリア
-      _inFlightFetch = null;
+      // 通信完了（成功・失敗問わず）したら該当ユーザーの実行中フラグ/Futureをクリア
+      if (_inFlightUserId == userId) {
+        _inFlightFetch = null;
+        _inFlightUserId = null;
+      }
     }
   }
 
-  /// 必要に応じてキャッシュを破棄するメソッド（ログアウト時などに使用）
+  /// 必要に応じてキャッシュを破棄するメソッド（ログアウト時やユーザー切り替え時に使用）
   void clearCache() {
+    _cachedUserId = null;
     _cachedOpponents = null;
+    _inFlightUserId = null;
     _inFlightFetch = null;
   }
 }

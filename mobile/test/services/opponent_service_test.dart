@@ -98,6 +98,23 @@ void main() {
       expect(OpponentService.instance.cachedOpponents, isEmpty);
     });
 
+    test('ユーザーIDが異なる場合は別々にキャッシュ・再取得されること', () async {
+      const userA = '11111111-1111-1111-1111-111111111111';
+      const userB = '99999999-9999-9999-9999-999999999999';
+
+      // ユーザーAで取得
+      await OpponentService.instance.loadOpponents(currentUserId: userA);
+      expect(fakeRepo.fetchCallCount, 1);
+
+      // ユーザーAの再取得はキャッシュが効く
+      await OpponentService.instance.loadOpponents(currentUserId: userA);
+      expect(fakeRepo.fetchCallCount, 1);
+
+      // ユーザーBで取得すると別ユーザーなので新しく通信が走る
+      await OpponentService.instance.loadOpponents(currentUserId: userB);
+      expect(fakeRepo.fetchCallCount, 2);
+    });
+
     test('UserModelのJSON変換が正常に行えること', () {
       final json = {
         'user_id': '22222222-2222-2222-2222-222222222222',
