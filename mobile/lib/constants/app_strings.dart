@@ -20,6 +20,12 @@ class AppStrings {
   static const String matchCardWin = 'WIN';
   static const String matchCardLose = 'LOSE';
   static const String matchCardVs = 'vs';
+  // StatsCard
+  static const String statsCardTitle = '今月の戦績';
+  static const String statsCardWinRateLabel = '勝率';
+  static String statsCardRecord(int wins, int losses) => '$wins勝 $losses敗';
+  static String statsCardWinRate(int winRatePercentage) =>
+      '$winRatePercentage%';
   // Score 入力周り
   static const String scoreSectionTitle = 'スコア';
   static const String scoreMy = '自分';

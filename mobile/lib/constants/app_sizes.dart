@@ -33,6 +33,13 @@ class AppSizes {
   static const double matchCardStatusVerticalPadding = 8.0;
   static const double matchCardStatusRadius = 999.0;
 
+  // StatsCardで使用するサイズ
+  static const double statsCardPadding = 16.0;
+  static const double statsCardIconBackgroundSize = 44.0;
+  static const double statsCardIconSize = 24.0;
+  static const double statsCardContentSpacing = 12.0;
+  static const double statsCardTextSpacing = 4.0;
+
   // ScoreInputRow 用のサイズ
   static const double scoreSetLabelWidth = 88.0;
   static const double scoreInputSpacing = 12.0;
