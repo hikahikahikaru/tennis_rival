@@ -4,7 +4,7 @@ import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 import '../models/user_model.dart';
-import '../service/opponent_service.dart';
+import '../services/opponent_service.dart';
 
 /// 対戦相手を選択するボトムシート（画面下から出るUI）
 class OpponentPickerSheet extends StatelessWidget {

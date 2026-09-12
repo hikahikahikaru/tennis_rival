@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'constants/app_theme.dart';
 import 'constants/supabase_constants.dart';
 import 'screens/home_screen.dart';
-import 'service/opponent_service.dart';
+import 'services/opponent_service.dart';
 
 Future<void> main() async {
   // Flutterの初期化処理を確実に行う

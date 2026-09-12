@@ -1,23 +1,28 @@
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../constants/app_strings.dart';
 import '../models/user_model.dart';
+import '../repositories/user_repository.dart';
 
-/// 対戦相手（同じグループに所属するユーザー）の一覧取得およびキャッシュ管理を行うサービスクラス
+/// 対戦相手の一覧取得およびキャッシュ管理を行うサービスクラス
 ///
 /// アプリ起動時に非同期で先読み（プリロード）してメモリ上に保持しておくことで、
 /// 試合登録画面で対戦相手を選択する際のUI表示レスポンスを向上させます。
+/// DB通信自体は [UserRepository] に委譲し、このクラスはキャッシュと状態管理を担当します。
 class OpponentService {
   // --- シングルトンパターンの実装 ---
   // アプリ全体で同一のインスタンス（キャッシュ）を共有できるようにします
   OpponentService._internal();
   static final OpponentService instance = OpponentService._internal();
 
-  /// テスト用などにSupabaseクライアントを差し替え可能にするプロパティ
-  @visibleForTesting
-  SupabaseClient? customClient;
+  /// データベース通信を担当するリポジトリ
+  UserRepository _userRepository = UserRepository();
 
-  SupabaseClient get _client => customClient ?? Supabase.instance.client;
+  /// テスト用などに [UserRepository] を差し替え可能にするセッター
+  @visibleForTesting
+  set userRepository(UserRepository repo) {
+    _userRepository = repo;
+  }
 
   /// ログイン機能未実装時の仮ログインユーザーID
   /// （supabase/seed.sql に登録されている「たけし」のUUID）
@@ -53,32 +58,9 @@ class OpponentService {
     _isLoading = true;
 
     try {
-      // 1. ログインユーザーが所属しているグループID (group_id) の一覧を取得
-      final memberRows = await _client
-          .from('group_members')
-          .select('group_id')
-          .eq('user_id', currentUserId);
-
-      final groupIds =
-          (memberRows as List).map((r) => r['group_id'] as String).toList();
-
-      if (groupIds.isEmpty) {
-        _cachedOpponents = [];
-        return [];
-      }
-
-      // 2. 該当グループに所属する「自分以外」のメンバーを取得し、usersテーブルとJOINしてユーザー名を取得
-      final response = await _client
-          .from('group_members')
-          .select('users!inner(user_id, user_name)')
-          .inFilter('group_id', groupIds)
-          .neq('user_id', currentUserId);
-
-      // 3. 取得したJSONデータをUserModelのリストに変換
-      final opponents = (response as List)
-          .map((item) =>
-              UserModel.fromJson(item['users'] as Map<String, dynamic>))
-          .toList();
+      // リポジトリ経由でSupabaseから同じグループの対戦相手一覧を取得
+      final opponents =
+          await _userRepository.fetchGroupOpponents(currentUserId);
 
       // 取得結果をメモリキャッシュに保存
       _cachedOpponents = opponents;
