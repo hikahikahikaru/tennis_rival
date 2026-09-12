@@ -14,6 +14,8 @@ class AppStrings {
   static const String opponent = '対戦相手';
   static const String selectOpponent = '対戦相手を選択';
   static const String opponentNotFound = '対戦相手が見つかりません';
+  static const String opponentFetchFailed = '対戦相手の取得に失敗しました';
+  static const String retry = '再試行';
   static const String unselected = '未選択';
   static const String matchFormat = '試合形式';
   static const String oneSet = '1セット';
@@ -54,5 +56,6 @@ class AppStrings {
   static const String matchConfirmRequest = '相手に確認依頼を送る';
 
   // エラー・ログ用メッセージ
-  static String errorOpponentFetch(Object error) => '対戦相手の取得中にエラーが発生しました: $error';
+  static String errorOpponentFetch(Object error) =>
+      '対戦相手の取得中にエラーが発生しました: $error';
 }

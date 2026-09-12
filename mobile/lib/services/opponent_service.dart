@@ -28,8 +28,9 @@ class OpponentService {
   /// メモリ上に保持する対戦相手一覧のキャッシュ
   List<UserModel>? _cachedOpponents;
 
-  /// 重複リクエストを防ぐための通信中フラグ
-  bool _isLoading = false;
+  /// 現在実行中の非同期取得処理（Future）
+  /// 通信中に別の箇所から呼び出された場合、このFutureを共有して同じ完了を待ちます
+  Future<List<UserModel>>? _inFlightFetch;
 
   /// キャッシュ済みの対戦相手一覧を取得します（未取得の場合は空リストを返却）
   List<UserModel> get cachedOpponents => _cachedOpponents ?? [];
@@ -44,34 +45,45 @@ class OpponentService {
   }) async {
     final targetUserId = currentUserId ?? MockData.currentUserId;
 
-    // すでにキャッシュが存在し、強制更新でなければ即座にキャッシュを返す
+    // 1. すでにキャッシュが存在し、強制更新でなければ即座にキャッシュを返す
     if (_cachedOpponents != null && !forceRefresh) {
       return _cachedOpponents!;
     }
 
-    // すでに別の処理で読み込み中の場合は現在のキャッシュ（または空リスト）を返して二重取得を防止
-    if (_isLoading) {
-      return _cachedOpponents ?? [];
+    // 2. すでに通信中の処理がある場合は、そのFutureを共有して完了を待つ
+    if (_inFlightFetch != null) {
+      return _inFlightFetch!;
     }
-    _isLoading = true;
 
+    // 3. 新規に通信を開始し、完了するまで _inFlightFetch に保持する
+    final fetchFuture = _fetchAndCacheOpponents(targetUserId);
+    _inFlightFetch = fetchFuture;
+
+    return fetchFuture;
+  }
+
+  /// 実際にリポジトリを呼び出してキャッシュに保存する内部メソッド
+  Future<List<UserModel>> _fetchAndCacheOpponents(String userId) async {
     try {
       // リポジトリ経由でSupabaseから同じグループの対戦相手一覧を取得
-      final opponents = await _userRepository.fetchGroupOpponents(targetUserId);
+      final opponents = await _userRepository.fetchGroupOpponents(userId);
 
       // 取得結果をメモリキャッシュに保存
       _cachedOpponents = opponents;
       return opponents;
     } catch (e) {
       debugPrint(AppStrings.errorOpponentFetch(e));
-      return _cachedOpponents ?? [];
+      // 例外を上位（UI層など）に伝達してエラー画面・再試行へ繋げる
+      rethrow;
     } finally {
-      _isLoading = false;
+      // 通信完了（成功・失敗問わず）したら進行中フラグ/Futureをクリア
+      _inFlightFetch = null;
     }
   }
 
   /// 必要に応じてキャッシュを破棄するメソッド（ログアウト時などに使用）
   void clearCache() {
     _cachedOpponents = null;
+    _inFlightFetch = null;
   }
 }

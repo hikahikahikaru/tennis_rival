@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
@@ -7,48 +8,83 @@ import '../models/user_model.dart';
 import '../services/opponent_service.dart';
 
 /// 対戦相手を選択するボトムシート（画面下から出るUI）
-class OpponentPickerSheet extends StatelessWidget {
-  /// 表示する対戦相手ユーザーのリスト
-  final List<UserModel> opponents;
-
-  const OpponentPickerSheet({
-    super.key,
-    required this.opponents,
-  });
+class OpponentPickerSheet extends StatefulWidget {
+  const OpponentPickerSheet({super.key});
 
   /// シートを呼び出すためのショートカット関数
   ///
-  /// キャッシュ済みの対戦相手一覧を取得して即座にボトムシートを表示します。
-  /// もしキャッシュがまだ無ければその場で非同期取得してから表示します。
-  /// 選択された [UserModel] を返却し、キャンセルされた場合は `null` を返します。
-  static Future<UserModel?> show(BuildContext context) async {
-    // 1. キャッシュが存在するか確認し、未取得の場合は取得処理を待つ
-    final list = OpponentService.instance.cachedOpponents.isNotEmpty
-        ? OpponentService.instance.cachedOpponents
-        : await OpponentService.instance.loadOpponents();
-
-    // 画面遷移中などでcontextが無効になっていないか確認
-    if (!context.mounted) return null;
-
-    // 2. モーダルボトムシートを表示し、タップされたユーザーを返す
+  /// モーダルボトムシートを開き、選択された [UserModel] を返却します。
+  /// キャンセル時や未選択で閉じた場合は `null` を返します。
+  static Future<UserModel?> show(BuildContext context) {
     return showModalBottomSheet<UserModel>(
       context: context,
       shape: const RoundedRectangleBorder(
-        // 角丸の数字を定数化
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSizes.bottomSheetRadius),
         ),
       ),
       builder: (BuildContext context) {
-        return OpponentPickerSheet(opponents: list);
+        return const OpponentPickerSheet();
       },
     );
   }
 
   @override
+  State<OpponentPickerSheet> createState() => _OpponentPickerSheetState();
+}
+
+class _OpponentPickerSheetState extends State<OpponentPickerSheet> {
+  List<UserModel>? _opponents;
+  bool _isLoading = false;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  /// 対戦相手データを取得（キャッシュ優先、なければ通信）
+  Future<void> _loadData({bool forceRefresh = false}) async {
+    // キャッシュが存在し強制再取得でなければ即座に反映
+    if (!forceRefresh && OpponentService.instance.cachedOpponents.isNotEmpty) {
+      setState(() {
+        _opponents = OpponentService.instance.cachedOpponents;
+        _isLoading = false;
+        _hasError = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    try {
+      final list = await OpponentService.instance.loadOpponents(
+        forceRefresh: forceRefresh,
+      );
+      if (mounted) {
+        setState(() {
+          _opponents = list;
+          _isLoading = false;
+          _hasError = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      // 余白と高さを定数化
       padding: const EdgeInsets.all(AppSizes.bottomSheetPadding),
       height: AppSizes.bottomSheetHeight,
       child: Column(
@@ -61,30 +97,78 @@ class OpponentPickerSheet extends StatelessWidget {
           ),
           const SizedBox(height: AppSizes.bottomSheetTitleSpacing),
 
-          // 対戦相手リストの表示エリア
+          // 対戦相手リスト / ローディング / エラー表示エリア
           Expanded(
-            child: opponents.isEmpty
-                ? const Center(
-                    // 候補が0件の場合のメッセージ
-                    child: Text(
-                      AppStrings.opponentNotFound,
-                      style: AppTextStyles.opponentPickerEmpty,
-                    ),
-                  )
-                : ListView.separated(
-                    itemCount: opponents.length,
-                    separatorBuilder: (context, index) => const Divider(
-                      height: AppSizes.bottomSheetDividerHeight,
-                      color: AppColors.borderLight,
-                    ),
-                    itemBuilder: (context, index) {
-                      final opponent = opponents[index];
-                      return _buildOpponentTile(context, opponent);
-                    },
-                  ),
+            child: _buildBody(),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBody() {
+    // 1. ローディング表示
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: AppColors.primary,
+        ),
+      );
+    }
+
+    // 2. エラー発生時（再試行ボタン付き）
+    if (_hasError) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              color: AppColors.matchLose,
+              size: AppSizes.bottomSheetErrorIconSize,
+            ),
+            const SizedBox(height: AppSizes.bottomSheetErrorSpacing),
+            const Text(
+              AppStrings.opponentFetchFailed,
+              style: AppTextStyles.opponentPickerError,
+            ),
+            const SizedBox(height: AppSizes.bottomSheetErrorSpacing),
+            TextButton.icon(
+              onPressed: () => _loadData(forceRefresh: true),
+              icon: const Icon(Icons.refresh, color: AppColors.primary),
+              label: const Text(
+                AppStrings.retry,
+                style: AppTextStyles.retryButton,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final opponents = _opponents ?? [];
+
+    // 3. 取得成功だが候補が0人の場合
+    if (opponents.isEmpty) {
+      return const Center(
+        child: Text(
+          AppStrings.opponentNotFound,
+          style: AppTextStyles.opponentPickerEmpty,
+        ),
+      );
+    }
+
+    // 4. 正常一覧表示
+    return ListView.separated(
+      itemCount: opponents.length,
+      separatorBuilder: (context, index) => const Divider(
+        height: AppSizes.bottomSheetDividerHeight,
+        color: AppColors.borderLight,
+      ),
+      itemBuilder: (context, index) {
+        final opponent = opponents[index];
+        return _buildOpponentTile(context, opponent);
+      },
     );
   }
 

@@ -21,6 +21,8 @@ class AppSizes {
   static const double bottomSheetTileHorizontalPadding = 4.0;
   static const double bottomSheetTileVerticalPadding = 2.0;
   static const double bottomSheetDividerHeight = 1.0;
+  static const double bottomSheetErrorIconSize = 36.0;
+  static const double bottomSheetErrorSpacing = 8.0;
 
   // カード共通のサイズ
   static const double cardRadius = 16.0;

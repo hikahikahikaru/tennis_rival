@@ -95,6 +95,16 @@ class AppTextStyles {
     color: AppColors.textSecondary,
   );
 
+  static const TextStyle opponentPickerError = TextStyle(
+    color: AppColors.matchLose,
+  );
+
+  static const TextStyle retryButton = TextStyle(
+    fontSize: 14.0,
+    fontWeight: FontWeight.w600,
+    color: AppColors.primary,
+  );
+
   static const TextStyle scoreTiebreakerLabel = TextStyle(
     fontSize: 12,
     color: AppColors.textSecondary,
