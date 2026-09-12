@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../constants/app_strings.dart';
 import '../models/user_model.dart';
-// ※ 今後Supabaseを本格接続する際は以下のパッケージを利用します
-// import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// 対戦相手（同じグループに所属するユーザー）の一覧取得およびキャッシュ管理を行うサービスクラス
 ///
@@ -13,6 +12,12 @@ class OpponentService {
   // アプリ全体で同一のインスタンス（キャッシュ）を共有できるようにします
   OpponentService._internal();
   static final OpponentService instance = OpponentService._internal();
+
+  /// テスト用などにSupabaseクライアントを差し替え可能にするプロパティ
+  @visibleForTesting
+  SupabaseClient? customClient;
+
+  SupabaseClient get _client => customClient ?? Supabase.instance.client;
 
   /// ログイン機能未実装時の仮ログインユーザーID
   /// （supabase/seed.sql に登録されている「たけし」のUUID）
@@ -48,19 +53,14 @@ class OpponentService {
     _isLoading = true;
 
     try {
-      /*
-      // ========================================================================
-      // 【Supabase本格連携時の実装例】
-      //
       // 1. ログインユーザーが所属しているグループID (group_id) の一覧を取得
-      final memberRows = await Supabase.instance.client
+      final memberRows = await _client
           .from('group_members')
           .select('group_id')
           .eq('user_id', currentUserId);
-      
-      final groupIds = (memberRows as List)
-          .map((r) => r['group_id'] as String)
-          .toList();
+
+      final groupIds =
+          (memberRows as List).map((r) => r['group_id'] as String).toList();
 
       if (groupIds.isEmpty) {
         _cachedOpponents = [];
@@ -68,7 +68,7 @@ class OpponentService {
       }
 
       // 2. 該当グループに所属する「自分以外」のメンバーを取得し、usersテーブルとJOINしてユーザー名を取得
-      final response = await Supabase.instance.client
+      final response = await _client
           .from('group_members')
           .select('users!inner(user_id, user_name)')
           .inFilter('group_id', groupIds)
@@ -76,26 +76,9 @@ class OpponentService {
 
       // 3. 取得したJSONデータをUserModelのリストに変換
       final opponents = (response as List)
-          .map((item) => UserModel.fromJson(item['users'] as Map<String, dynamic>))
+          .map((item) =>
+              UserModel.fromJson(item['users'] as Map<String, dynamic>))
           .toList();
-      // ========================================================================
-      */
-
-      // --- 【開発用モックデータ】Supabase未接続時のダミー取得（seed.sql準拠） ---
-      // ネットワーク通信の遅延を擬似的に再現 (300ms)
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      // seed.sql にある「たけし」と同じグループ（週末テニスサークル）の他メンバー
-      final opponents = [
-        const UserModel(
-          id: '22222222-2222-2222-2222-222222222222',
-          name: '西やん',
-        ),
-        const UserModel(
-          id: '33333333-3333-3333-3333-333333333333',
-          name: 'ピンちゃん',
-        ),
-      ];
 
       // 取得結果をメモリキャッシュに保存
       _cachedOpponents = opponents;
