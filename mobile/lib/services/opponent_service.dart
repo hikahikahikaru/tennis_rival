@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../constants/app_strings.dart';
+import '../mocks/mock_data.dart';
 import '../models/user_model.dart';
 import '../repositories/user_repository.dart';
 
@@ -24,11 +25,6 @@ class OpponentService {
     _userRepository = repo;
   }
 
-  /// ログイン機能未実装時の仮ログインユーザーID
-  /// （supabase/seed.sql に登録されている「たけし」のUUID）
-  static const String dummyCurrentUserId =
-      '11111111-1111-1111-1111-111111111111';
-
   /// メモリ上に保持する対戦相手一覧のキャッシュ
   List<UserModel>? _cachedOpponents;
 
@@ -40,12 +36,14 @@ class OpponentService {
 
   /// 対戦相手一覧を非同期で取得・キャッシュするメソッド
   ///
-  /// [currentUserId] 取得基準となるログインユーザーのID（未指定時はダミーID）
+  /// [currentUserId] 取得基準となるログインユーザーのID（未指定時は [MockData.currentUserId]）
   /// [forceRefresh] trueにするとキャッシュを無視して再取得します（引っ張って更新など用）
   Future<List<UserModel>> loadOpponents({
-    String currentUserId = dummyCurrentUserId,
+    String? currentUserId,
     bool forceRefresh = false,
   }) async {
+    final targetUserId = currentUserId ?? MockData.currentUserId;
+
     // すでにキャッシュが存在し、強制更新でなければ即座にキャッシュを返す
     if (_cachedOpponents != null && !forceRefresh) {
       return _cachedOpponents!;
@@ -59,8 +57,7 @@ class OpponentService {
 
     try {
       // リポジトリ経由でSupabaseから同じグループの対戦相手一覧を取得
-      final opponents =
-          await _userRepository.fetchGroupOpponents(currentUserId);
+      final opponents = await _userRepository.fetchGroupOpponents(targetUserId);
 
       // 取得結果をメモリキャッシュに保存
       _cachedOpponents = opponents;
