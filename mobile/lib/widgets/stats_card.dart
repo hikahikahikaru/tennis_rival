@@ -4,18 +4,15 @@ import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
+import '../models/user_stats.dart';
 
 /// 今月の勝敗と勝率を表示する読み取り専用のサマリーカード。
 class StatsCard extends StatelessWidget {
-  final int wins;
-  final int losses;
-  final int winRatePercentage;
+  final UserStats stats;
 
   const StatsCard({
     super.key,
-    required this.wins,
-    required this.losses,
-    required this.winRatePercentage,
+    required this.stats,
   });
 
   @override
@@ -70,7 +67,7 @@ class StatsCard extends StatelessWidget {
         ),
         const SizedBox(height: AppSizes.statsCardTextSpacing),
         Text(
-          AppStrings.statsCardRecord(wins, losses),
+          AppStrings.statsCardRecord(stats.wins, stats.losses),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.statsCardRecord,
@@ -93,7 +90,7 @@ class StatsCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSizes.statsCardTextSpacing),
           Text(
-            AppStrings.statsCardWinRate(winRatePercentage),
+            AppStrings.statsCardWinRate(stats.winRatePercentage),
             style: AppTextStyles.statsCardWinRate,
           ),
         ],

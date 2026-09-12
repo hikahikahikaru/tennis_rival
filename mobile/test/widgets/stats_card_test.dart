@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/constants/app_strings.dart';
+import 'package:mobile/models/user_stats.dart';
 import 'package:mobile/widgets/stats_card.dart';
 
 void main() {
@@ -8,9 +9,7 @@ void main() {
     return const MaterialApp(
       home: Scaffold(
         body: StatsCard(
-          wins: 4,
-          losses: 2,
-          winRatePercentage: 67,
+          stats: UserStats(wins: 4, losses: 2),
         ),
       ),
     );
