@@ -48,6 +48,30 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
   );
 
+  // StatsCard 用のテキストスタイル
+  static const TextStyle statsCardTitle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: AppColors.primary,
+  );
+
+  static const TextStyle statsCardRecord = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle statsCardWinRateLabel = TextStyle(
+    fontSize: 12,
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle statsCardWinRate = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.primary,
+  );
+
   // ScoreInputRow 用のテキストスタイル
   static const TextStyle scoreSetLabel = TextStyle(
     fontSize: 14,
