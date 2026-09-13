@@ -79,6 +79,10 @@ class AppSizes {
   // 画面全体の共通サイズ
   static const double screenPadding = 16.0;
 
+  // HomeScreenで使用するサイズ
+  static const double homeHeaderIconSize = 28.0;
+  static const double homeNotificationIconSize = 24.0;
+
   // 余白・すき間のサイズ（spacingSmall = 4.0の下に追加）
   static const double spacingMedium = 12.0;
   static const double spacingLarge = 24.0;
