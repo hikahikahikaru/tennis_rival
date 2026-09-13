@@ -1,4 +1,6 @@
 class AppStrings {
+  static const String appName = 'Tennis Rival';
+
   // ナビゲーションバーで使用
   static const String navHome = 'ホーム';
   static const String navStats = '戦績';
@@ -7,6 +9,12 @@ class AppStrings {
   static const String navProfile = 'マイページ';
   // ホーム画面で使用
   static const String recordMatch = '試合結果を記録';
+  static const String homeGreeting = 'こんにちは、たけしさん';
+  static const String homeRecentMatchesTitle = '最近の試合';
+  static const String homeNotificationTooltip = '通知';
+  static const String homeNotificationUnavailable = '通知機能は未実装です';
+  static const String homePendingMatchUnavailable = '確認待ち画面は未実装です';
+  static const String homeNavUnavailable = 'この機能は未実装です';
 
   // 試合登録画面で使用
   static const String matchInfo = '試合情報';

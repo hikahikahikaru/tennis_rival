@@ -9,6 +9,25 @@ class AppTextStyles {
     fontWeight: FontWeight.w600,
   );
 
+  // HomeScreen 用のテキストスタイル
+  static const TextStyle homeAppName = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.primary,
+  );
+
+  static const TextStyle homeGreeting = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle homeSectionTitle = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
   // SelectionField用のテキストスタイル
   static const TextStyle selectionFieldTitle = TextStyle(
     fontSize: 12,
