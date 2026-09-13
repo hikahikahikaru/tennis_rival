@@ -16,6 +16,22 @@ class MockData {
   /// 仮ログインユーザーのID（UUID）
   static String get currentUserId => currentUser.id;
 
+  /// 切り替え確認用ダミーユーザー一覧
+  static const List<UserModel> dummyLoginUsers = [
+    UserModel(
+      id: '11111111-1111-1111-1111-111111111111',
+      name: 'たけし',
+    ),
+    UserModel(
+      id: '22222222-2222-2222-2222-222222222222',
+      name: '西やん',
+    ),
+    UserModel(
+      id: '33333333-3333-3333-3333-333333333333',
+      name: 'ピンちゃん',
+    ),
+  ];
+
   /// 「たけし」と同じグループに所属する対戦相手のモックリスト
   static const List<UserModel> opponents = [
     UserModel(

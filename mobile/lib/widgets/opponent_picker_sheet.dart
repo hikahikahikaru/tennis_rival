@@ -9,13 +9,22 @@ import '../services/opponent_service.dart';
 
 /// 対戦相手を選択するボトムシート（画面下から出るUI）
 class OpponentPickerSheet extends StatefulWidget {
-  const OpponentPickerSheet({super.key});
+  /// 基準となるログインユーザーID（未指定時はデフォルト）
+  final String? currentUserId;
+
+  const OpponentPickerSheet({
+    super.key,
+    this.currentUserId,
+  });
 
   /// シートを呼び出すためのショートカット関数
   ///
   /// モーダルボトムシートを開き、選択された [UserModel] を返却します。
   /// キャンセル時や未選択で閉じた場合は `null` を返します。
-  static Future<UserModel?> show(BuildContext context) {
+  static Future<UserModel?> show(
+    BuildContext context, {
+    String? currentUserId,
+  }) {
     return showModalBottomSheet<UserModel>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -24,7 +33,7 @@ class OpponentPickerSheet extends StatefulWidget {
         ),
       ),
       builder: (BuildContext context) {
-        return const OpponentPickerSheet();
+        return OpponentPickerSheet(currentUserId: currentUserId);
       },
     );
   }
@@ -46,16 +55,6 @@ class _OpponentPickerSheetState extends State<OpponentPickerSheet> {
 
   /// 対戦相手データを取得（キャッシュ優先、なければ通信）
   Future<void> _loadData({bool forceRefresh = false}) async {
-    // キャッシュが存在し強制再取得でなければ即座に反映
-    if (!forceRefresh && OpponentService.instance.cachedOpponents.isNotEmpty) {
-      setState(() {
-        _opponents = OpponentService.instance.cachedOpponents;
-        _isLoading = false;
-        _hasError = false;
-      });
-      return;
-    }
-
     setState(() {
       _isLoading = true;
       _hasError = false;
@@ -63,6 +62,7 @@ class _OpponentPickerSheetState extends State<OpponentPickerSheet> {
 
     try {
       final list = await OpponentService.instance.loadOpponents(
+        currentUserId: widget.currentUserId,
         forceRefresh: forceRefresh,
       );
       if (mounted) {
