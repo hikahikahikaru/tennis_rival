@@ -40,6 +40,18 @@ class AppSizes {
   static const double statsCardContentSpacing = 12.0;
   static const double statsCardTextSpacing = 4.0;
 
+  // PendingMatchCardで使用するサイズ
+  static const double pendingMatchCardPadding = 16.0;
+  static const double pendingMatchCardIconBackgroundSize = 44.0;
+  static const double pendingMatchCardIconSize = 24.0;
+  static const double pendingMatchCardContentSpacing = 12.0;
+  static const double pendingMatchCardBadgeHorizontalPadding = 10.0;
+  static const double pendingMatchCardBadgeVerticalPadding = 4.0;
+  static const double pendingMatchCardButtonHorizontalPadding = 16.0;
+  static const double pendingMatchCardButtonVerticalPadding = 10.0;
+  static const double pendingMatchCardWideLayoutMinWidth = 320.0;
+  static const double pendingMatchCardCompactTextScaleThreshold = 1.15;
+
   // ScoreInputRow 用のサイズ
   static const double scoreSetLabelWidth = 88.0;
   static const double scoreInputSpacing = 12.0;
