@@ -12,6 +12,11 @@ class AppStrings {
   static const String matchInfo = '試合情報';
   static const String matchDate = '試合日';
   static const String opponent = '対戦相手';
+  static const String selectOpponent = '対戦相手を選択';
+  static const String opponentNotFound = '対戦相手が見つかりません';
+  static const String opponentFetchFailed = '対戦相手の取得に失敗しました';
+  static const String retry = '再試行';
+  static const String unselected = '未選択';
   static const String matchFormat = '試合形式';
   static const String oneSet = '1セット';
   static const String threeSets = '3セット';
@@ -55,4 +60,8 @@ class AppStrings {
   static const String matchConfirmNotice = '送信後は相手の承認まで「確認待ち」になります';
   static const String matchConfirmEdit = '修正する';
   static const String matchConfirmRequest = '相手に確認依頼を送る';
+
+  // エラー・ログ用メッセージ
+  static String errorOpponentFetch(Object error) =>
+      '対戦相手の取得中にエラーが発生しました: $error';
 }

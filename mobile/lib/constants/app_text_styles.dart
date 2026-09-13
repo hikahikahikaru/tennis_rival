@@ -102,6 +102,33 @@ class AppTextStyles {
     color: AppColors.matchOpponentText,
   );
 
+  // OpponentPickerSheet（対戦相手選択）用のテキストスタイル
+  static const TextStyle opponentPickerTitle = TextStyle(
+    fontSize: 18.0,
+    fontWeight: FontWeight.bold,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle opponentPickerItemName = TextStyle(
+    fontSize: 16.0,
+    fontWeight: FontWeight.w500,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle opponentPickerEmpty = TextStyle(
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle opponentPickerError = TextStyle(
+    color: AppColors.matchLose,
+  );
+
+  static const TextStyle retryButton = TextStyle(
+    fontSize: 14.0,
+    fontWeight: FontWeight.w600,
+    color: AppColors.primary,
+  );
+
   static const TextStyle scoreTiebreakerLabel = TextStyle(
     fontSize: 12,
     color: AppColors.textSecondary,
