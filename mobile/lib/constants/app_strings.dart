@@ -26,6 +26,10 @@ class AppStrings {
   static String statsCardRecord(int wins, int losses) => '$wins勝 $losses敗';
   static String statsCardWinRate(int winRatePercentage) =>
       '$winRatePercentage%';
+  // PendingMatchCard
+  static const String pendingMatchCardTitle = '確認待ちの試合';
+  static const String pendingMatchCardConfirm = '確認する';
+  static String pendingMatchCardCount(int pendingCount) => '$pendingCount件';
   // Score 入力周り
   static const String scoreSectionTitle = 'スコア';
   static const String scoreMy = '自分';
