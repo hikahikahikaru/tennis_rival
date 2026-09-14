@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'constants/app_strings.dart';
 import 'constants/app_theme.dart';
 import 'constants/supabase_constants.dart';
 import 'screens/home_screen.dart';
@@ -18,9 +21,18 @@ Future<void> main() async {
   // アプリ起動時にバックグラウンドで対戦相手一覧を先読み（非同期プリロード）
   // awaitせずに呼び出すことで、画面の描画をブロックせず高速に起動しつつ、
   // 後でユーザーが対戦相手選択を開いた際に即時表示できるようにキャッシュします。
-  OpponentService.instance.loadOpponents();
+  unawaited(_preloadOpponents());
 
   runApp(const MyApp());
+}
+
+// 先読み専用のエラー握りつぶし。失敗時の再試行導線はOpponentPickerSheet側に委ねる。
+Future<void> _preloadOpponents() async {
+  try {
+    await OpponentService.instance.loadOpponents();
+  } catch (e) {
+    debugPrint(AppStrings.errorOpponentFetch(e));
+  }
 }
 
 class MyApp extends StatelessWidget {
