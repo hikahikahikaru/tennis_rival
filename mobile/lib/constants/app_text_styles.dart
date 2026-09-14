@@ -72,6 +72,24 @@ class AppTextStyles {
     color: AppColors.primary,
   );
 
+  // PendingMatchCard 用のテキストスタイル
+  static const TextStyle pendingMatchCardTitle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle pendingMatchCardBadge = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w700,
+    color: AppColors.primary,
+  );
+
+  static const TextStyle pendingMatchCardButton = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+  );
+
   // ScoreInputRow 用のテキストスタイル
   static const TextStyle scoreSetLabel = TextStyle(
     fontSize: 14,
