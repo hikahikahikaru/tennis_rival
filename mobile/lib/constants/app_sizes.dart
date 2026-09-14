@@ -51,6 +51,7 @@ class AppSizes {
   static const double pendingMatchCardButtonVerticalPadding = 10.0;
   static const double pendingMatchCardWideLayoutMinWidth = 320.0;
   static const double pendingMatchCardCompactTextScaleThreshold = 1.15;
+  static const double pendingMatchCardTitleBadgeSpacing = 8.0;
 
   // ScoreInputRow 用のサイズ
   static const double scoreSetLabelWidth = 88.0;
