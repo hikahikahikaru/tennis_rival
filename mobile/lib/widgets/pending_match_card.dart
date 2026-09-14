@@ -28,6 +28,7 @@ class PendingMatchCard extends StatelessWidget {
         padding: const EdgeInsets.all(AppSizes.pendingMatchCardPadding),
         child: LayoutBuilder(
           builder: (context, constraints) {
+            // 狭い幅や文字拡大時は、読みやすさを保つため確認ボタンを下段に配置する。
             final textScale = MediaQuery.textScalerOf(context).scale(1);
             final useWideLayout = constraints.maxWidth >=
                     AppSizes.pendingMatchCardWideLayoutMinWidth &&
@@ -91,7 +92,7 @@ class PendingMatchCard extends StatelessWidget {
 
   Widget _buildTitleAndBadge() {
     return Wrap(
-      spacing: AppSizes.scoreHeaderSpacing,
+      spacing: AppSizes.pendingMatchCardTitleBadgeSpacing,
       runSpacing: AppSizes.spacingSmall,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
