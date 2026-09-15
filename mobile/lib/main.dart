@@ -1,9 +1,38 @@
-import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
-import 'constants/app_theme.dart';
+import 'dart:async';
 
-void main() {
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'constants/app_strings.dart';
+import 'constants/app_theme.dart';
+import 'constants/supabase_constants.dart';
+import 'screens/home_screen.dart';
+import 'services/opponent_service.dart';
+
+Future<void> main() async {
+  // Flutterの初期化処理を確実に行う
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Supabaseクライアントの初期化
+  await Supabase.initialize(
+    url: SupabaseConstants.apiUrl,
+    anonKey: SupabaseConstants.anonKey,
+  );
+
+  // アプリ起動時にバックグラウンドで対戦相手一覧を先読み（非同期プリロード）
+  // awaitせずに呼び出すことで、画面の描画をブロックせず高速に起動しつつ、
+  // 後でユーザーが対戦相手選択を開いた際に即時表示できるようにキャッシュします。
+  unawaited(_preloadOpponents());
+
   runApp(const MyApp());
+}
+
+// 先読み専用のエラー握りつぶし。失敗時の再試行導線はOpponentPickerSheet側に委ねる。
+Future<void> _preloadOpponents() async {
+  try {
+    await OpponentService.instance.loadOpponents();
+  } catch (e) {
+    debugPrint(AppStrings.errorOpponentFetch(e));
+  }
 }
 
 class MyApp extends StatelessWidget {

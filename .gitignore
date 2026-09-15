@@ -1,2 +1,7 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
 supabase/.temp/
 *.tar.gz
