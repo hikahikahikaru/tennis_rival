@@ -7,6 +7,7 @@ import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 import '../models/match_format.dart';
 import '../models/match_set_score.dart';
+import '../models/user_model.dart';
 import '../widgets/match_date_picker.dart';
 import '../widgets/opponent_picker_sheet.dart';
 import '../widgets/primary_button.dart';
@@ -24,8 +25,13 @@ class MatchEntryScreen extends StatefulWidget {
 
 class _MatchEntryScreenState extends State<MatchEntryScreen> {
   DateTime _selectedDate = DateTime.now();
-  String _selectedOpponent = '未選択';
+  UserModel? _selectedOpponentUser;
   MatchFormat _selectedFormat = MatchFormat.threeSets;
+
+  /// 選択中の対戦相手の表示名（未選択時は「未選択」）
+  String get _selectedOpponent =>
+      _selectedOpponentUser?.name ?? AppStrings.unselected;
+
   // ControllerはScoreInputSection内に閉じ込め、確認画面へ渡すのは入力値のスナップショットだけにする。
   List<MatchSetScore>? _confirmSetScores;
 
@@ -35,6 +41,16 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
+      });
+    }
+  }
+
+  // 対戦相手選択シートを呼び出し、選択結果を画面状態に反映する処理
+  Future<void> _handleOpponentSelection() async {
+    final picked = await OpponentPickerSheet.show(context);
+    if (picked != null) {
+      setState(() {
+        _selectedOpponentUser = picked;
       });
     }
   }
@@ -116,8 +132,8 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
               title: AppStrings.opponent,
               value: _selectedOpponent,
               icon: Icons.person_search,
-              // シートを呼び出すだけ（setStateは将来、相手を選んでから実装）
-              onTap: () => OpponentPickerSheet.show(context),
+              // 切り出した対戦相手選択処理を呼び出す
+              onTap: _handleOpponentSelection,
             ),
             const SizedBox(height: AppSizes.scoreSectionSpacing),
             const Text(
