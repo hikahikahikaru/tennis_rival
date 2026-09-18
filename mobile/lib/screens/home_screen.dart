@@ -5,7 +5,10 @@ import '../constants/app_nav_items.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
+import '../mocks/mock_data.dart';
+import '../models/match_history_item.dart';
 import '../models/user_stats.dart';
+import '../repositories/match_history_repository.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/match_card.dart';
 import '../widgets/pending_match_card.dart';
@@ -15,31 +18,94 @@ import 'match_entry_screen.dart';
 
 /// 既存部品の配置と画面遷移・操作の接続を担当するホーム画面。
 ///
-/// DB取得や戦績計算はここでは行わず、取得・計算済みの値を各Widgetへ渡す。
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+/// DB通信はRepositoryに委譲し、画面では取得開始と状態表示を担当する。
+/// 戦績の計算はUserStatsに任せる。
+class HomeScreen extends StatefulWidget {
+  final MatchHistoryRepository? matchHistoryRepository;
+  final String? currentUserId;
 
-  // Issue #5では画面確認用の仮データを一か所にまとめる。
-  // DB取得対応時はここを取得結果へ差し替え、勝率計算はUserStatsに任せる。
+  const HomeScreen({
+    super.key,
+    this.matchHistoryRepository,
+    this.currentUserId,
+  });
+
+  // 戦績と確認待ち件数は画面確認用の仮データ。DB対応時に差し替える。
   static const UserStats _sampleStats = UserStats(wins: 4, losses: 2);
   static const int _samplePendingCount = 1;
-  static const List<_RecentMatchSample> _sampleRecentMatches = [
-    _RecentMatchSample(
-      date: '8月24日',
-      opponentName: '西やん',
-      score: '6-4, 6-3',
-      isWin: true,
-    ),
-    _RecentMatchSample(
-      date: '8月18日',
-      opponentName: 'ピンちゃん',
-      score: '4-6, 7-5, 10-8',
-      isWin: true,
-    ),
-  ];
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late MatchHistoryRepository _matchHistoryRepository;
+  late String _currentUserId;
+  var _isRecentMatchesLoading = true;
+  Object? _recentMatchesError;
+  List<MatchHistoryItem> _recentMatches = const [];
+  int _recentMatchesRequestId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _setDependencies();
+    _loadRecentMatches();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.matchHistoryRepository != widget.matchHistoryRepository ||
+        oldWidget.currentUserId != widget.currentUserId) {
+      _setDependencies();
+      _loadRecentMatches();
+    }
+  }
+
+  void _setDependencies() {
+    _matchHistoryRepository =
+        widget.matchHistoryRepository ?? SupabaseMatchHistoryRepository();
+    // 認証未実装のため、DB取得時の閲覧者はseed.sqlの仮ユーザーに固定する。
+    _currentUserId = widget.currentUserId ?? MockData.currentUserId;
+  }
 
   int get _homeNavIndex {
     return appNavItems.indexWhere((item) => item.label == AppStrings.navHome);
+  }
+
+  Future<void> _loadRecentMatches() async {
+    // ユーザー変更や再試行が重なっても、古い通信結果で最新の表示を上書きしない。
+    final requestId = ++_recentMatchesRequestId;
+    setState(() {
+      _isRecentMatchesLoading = true;
+      _recentMatchesError = null;
+    });
+
+    try {
+      final matches =
+          await _matchHistoryRepository.fetchRecentMatches(_currentUserId);
+
+      if (!mounted || requestId != _recentMatchesRequestId) {
+        return;
+      }
+
+      setState(() {
+        _recentMatches = matches;
+        _isRecentMatchesLoading = false;
+      });
+    } catch (error) {
+      if (!mounted || requestId != _recentMatchesRequestId) {
+        return;
+      }
+
+      setState(() {
+        _recentMatches = const [];
+        _recentMatchesError = error;
+        _isRecentMatchesLoading = false;
+      });
+    }
   }
 
   void _openMatchEntryScreen(BuildContext context) {
@@ -99,10 +165,10 @@ class HomeScreen extends StatelessWidget {
                 onPressed: () => _openMatchEntryScreen(context),
               ),
               const SizedBox(height: AppSizes.spacingLarge),
-              const StatsCard(stats: _sampleStats),
+              const StatsCard(stats: HomeScreen._sampleStats),
               const SizedBox(height: AppSizes.scoreSectionSpacing),
               PendingMatchCard(
-                pendingCount: _samplePendingCount,
+                pendingCount: HomeScreen._samplePendingCount,
                 onConfirm: () {
                   _showTemporaryMessage(
                     context,
@@ -116,15 +182,7 @@ class HomeScreen extends StatelessWidget {
                 style: AppTextStyles.homeSectionTitle,
               ),
               const SizedBox(height: AppSizes.scoreSectionSpacing),
-              for (final match in _sampleRecentMatches) ...[
-                MatchCard(
-                  date: match.date,
-                  opponentName: match.opponentName,
-                  score: match.score,
-                  isWin: match.isWin,
-                ),
-                const SizedBox(height: AppSizes.spacingMedium),
-              ],
+              _buildRecentMatches(),
             ],
           ),
         ),
@@ -134,6 +192,71 @@ class HomeScreen extends StatelessWidget {
         onTap: (index) => _handleBottomNavTap(context, index),
       ),
     );
+  }
+
+  Widget _buildRecentMatches() {
+    // DB取得と変換はRepositoryへ閉じ込め、ここでは取得状態ごとの表示に専念する。
+    if (_isRecentMatchesLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: AppSizes.spacingLarge),
+        child: Center(
+          child: Column(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: AppSizes.spacingMedium),
+              Text(
+                AppStrings.homeRecentMatchesLoading,
+                style: AppTextStyles.opponentPickerEmpty,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_recentMatchesError != null) {
+      return Center(
+        child: Column(
+          children: [
+            const Text(
+              AppStrings.homeRecentMatchesFetchFailed,
+              style: AppTextStyles.opponentPickerError,
+            ),
+            const SizedBox(height: AppSizes.spacingSmall),
+            OutlinedButton(
+              onPressed: _loadRecentMatches,
+              child: const Text(AppStrings.retry),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_recentMatches.isEmpty) {
+      return const Text(
+        AppStrings.homeRecentMatchesEmpty,
+        style: AppTextStyles.opponentPickerEmpty,
+      );
+    }
+
+    return Column(
+      children: [
+        for (final match in _recentMatches) ...[
+          MatchCard(
+            date: _formatMatchDate(match.matchDate),
+            opponentName: match.opponentName,
+            score: match.scoreText,
+            isWin: match.isWin,
+          ),
+          const SizedBox(height: AppSizes.spacingMedium),
+        ],
+      ],
+    );
+  }
+
+  String _formatMatchDate(DateTime matchDate) {
+    final localDate = matchDate.toLocal();
+    return '${localDate.month}月${localDate.day}日';
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -170,18 +293,4 @@ class HomeScreen extends StatelessWidget {
       ],
     );
   }
-}
-
-class _RecentMatchSample {
-  final String date;
-  final String opponentName;
-  final String score;
-  final bool isWin;
-
-  const _RecentMatchSample({
-    required this.date,
-    required this.opponentName,
-    required this.score,
-    required this.isWin,
-  });
 }

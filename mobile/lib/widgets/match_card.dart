@@ -9,7 +9,7 @@ class MatchCard extends StatelessWidget {
   final String date;
   final String opponentName;
   final String score;
-  final bool isWin;
+  final bool? isWin;
 
   const MatchCard({
     super.key,
@@ -21,11 +21,21 @@ class MatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusText =
-        isWin ? AppStrings.matchCardWin : AppStrings.matchCardLose;
-    final statusBackgroundColor =
-        isWin ? AppColors.matchWinBackground : AppColors.matchLoseBackground;
-    final statusTextColor = isWin ? AppColors.matchWin : AppColors.matchLose;
+    final statusText = switch (isWin) {
+      true => AppStrings.matchCardWin,
+      false => AppStrings.matchCardLose,
+      null => AppStrings.matchCardUnknown,
+    };
+    final statusBackgroundColor = switch (isWin) {
+      true => AppColors.matchWinBackground,
+      false => AppColors.matchLoseBackground,
+      null => AppColors.matchUnknownBackground,
+    };
+    final statusTextColor = switch (isWin) {
+      true => AppColors.matchWin,
+      false => AppColors.matchLose,
+      null => AppColors.matchUnknown,
+    };
 
     return Card(
       child: Padding(
