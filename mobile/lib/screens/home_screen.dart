@@ -10,9 +10,9 @@ import '../models/match_history_item.dart';
 import '../models/user_stats.dart';
 import '../repositories/match_history_repository.dart';
 import '../widgets/bottom_nav_bar.dart';
-import '../widgets/match_card.dart';
 import '../widgets/pending_match_card.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/recent_match_list.dart';
 import '../widgets/stats_card.dart';
 import 'match_entry_screen.dart';
 
@@ -182,7 +182,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: AppTextStyles.homeSectionTitle,
               ),
               const SizedBox(height: AppSizes.scoreSectionSpacing),
-              _buildRecentMatches(),
+              RecentMatchList(
+                isLoading: _isRecentMatchesLoading,
+                error: _recentMatchesError,
+                matches: _recentMatches,
+                onRetry: _loadRecentMatches,
+              ),
             ],
           ),
         ),
@@ -192,71 +197,6 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (index) => _handleBottomNavTap(context, index),
       ),
     );
-  }
-
-  Widget _buildRecentMatches() {
-    // DB取得と変換はRepositoryへ閉じ込め、ここでは取得状態ごとの表示に専念する。
-    if (_isRecentMatchesLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: AppSizes.spacingLarge),
-        child: Center(
-          child: Column(
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: AppSizes.spacingMedium),
-              Text(
-                AppStrings.homeRecentMatchesLoading,
-                style: AppTextStyles.opponentPickerEmpty,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (_recentMatchesError != null) {
-      return Center(
-        child: Column(
-          children: [
-            const Text(
-              AppStrings.homeRecentMatchesFetchFailed,
-              style: AppTextStyles.opponentPickerError,
-            ),
-            const SizedBox(height: AppSizes.spacingSmall),
-            OutlinedButton(
-              onPressed: _loadRecentMatches,
-              child: const Text(AppStrings.retry),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (_recentMatches.isEmpty) {
-      return const Text(
-        AppStrings.homeRecentMatchesEmpty,
-        style: AppTextStyles.opponentPickerEmpty,
-      );
-    }
-
-    return Column(
-      children: [
-        for (final match in _recentMatches) ...[
-          MatchCard(
-            date: _formatMatchDate(match.matchDate),
-            opponentName: match.opponentName,
-            score: match.scoreText,
-            isWin: match.isWin,
-          ),
-          const SizedBox(height: AppSizes.spacingMedium),
-        ],
-      ],
-    );
-  }
-
-  String _formatMatchDate(DateTime matchDate) {
-    final localDate = matchDate.toLocal();
-    return '${localDate.month}月${localDate.day}日';
   }
 
   Widget _buildHeader(BuildContext context) {
