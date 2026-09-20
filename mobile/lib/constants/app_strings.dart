@@ -37,6 +37,7 @@ class AppStrings {
   static const String matchCardLose = 'LOSE';
   static const String matchCardUnknown = '判定不能';
   static const String matchCardVs = 'vs';
+  static const String matchOpponentUnknown = '対戦相手不明';
   static const String matchScoreUnknown = 'スコア不明';
   // StatsCard
   static const String statsCardTitle = '今月の戦績';

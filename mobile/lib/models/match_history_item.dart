@@ -76,7 +76,7 @@ class MatchHistoryItem {
         return userName;
       }
     }
-    return AppStrings.unselected;
+    return AppStrings.matchOpponentUnknown;
   }
 
   static String _buildScoreText({

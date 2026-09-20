@@ -32,6 +32,28 @@ void main() {
       expect(item.isWin, isNull);
     });
 
+    test('shows history-specific text when opponent data is missing', () {
+      final row = _row(
+        score1UserId: currentUserId,
+        winnerId: currentUserId,
+      );
+      final match = row['matches'] as Map<String, dynamic>;
+      match['match_participants'] = [
+        {
+          'participant_id': currentUserId,
+          'users': {'user_name': 'たけし'},
+        },
+      ];
+
+      final item = MatchHistoryItem.fromRow(
+        row,
+        currentUserId: currentUserId,
+      );
+
+      expect(item, isNotNull);
+      expect(item!.opponentName, '対戦相手不明');
+    });
+
     test('formats match date for card display', () {
       final item = MatchHistoryItem(
         matchDate: DateTime(2026, 8, 24),
