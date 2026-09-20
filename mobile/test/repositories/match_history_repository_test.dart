@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:mobile/models/match_type.dart';
 import 'package:mobile/repositories/match_history_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -113,7 +114,7 @@ void main() {
       expect(MatchHistoryQuery.table, 'match_participants');
       expect(MatchHistoryQuery.participantColumn, 'participant_id');
       expect(MatchHistoryQuery.matchTypeColumn, 'matches.match_type');
-      expect(MatchHistoryQuery.singlesMatchType, 1);
+      expect(MatchType.singles.dbValue, 1);
       expect(MatchHistoryQuery.select, contains('score1_user_id'));
       expect(MatchHistoryQuery.select, contains('set_scores'));
       expect(MatchHistoryQuery.select, contains('match_participants'));

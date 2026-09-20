@@ -1,5 +1,6 @@
 import '../constants/app_strings.dart';
 import 'match_set_score.dart';
+import 'match_type.dart';
 
 /// ホーム画面の最近の試合へ表示する、閲覧者視点へ変換済みの試合履歴。
 class MatchHistoryItem {
@@ -27,7 +28,8 @@ class MatchHistoryItem {
   }) {
     final rowMap = _asMap(row);
     final matchMap = _asMap(rowMap?['matches']);
-    if (matchMap == null || _asInt(matchMap['match_type']) != 1) {
+    if (matchMap == null ||
+        _asInt(matchMap['match_type']) != MatchType.singles.dbValue) {
       return null;
     }
 

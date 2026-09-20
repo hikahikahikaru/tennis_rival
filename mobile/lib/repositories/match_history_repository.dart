@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/match_history_item.dart';
+import '../models/match_type.dart';
 
 abstract class MatchHistoryRepository {
   Future<List<MatchHistoryItem>> fetchRecentMatches(String currentUserId);
@@ -14,7 +15,6 @@ class MatchHistoryQuery {
   static const String table = 'match_participants';
   static const String participantColumn = 'participant_id';
   static const String matchTypeColumn = 'matches.match_type';
-  static const int singlesMatchType = 1;
   static const String matchDateOrderColumn = 'dt_match';
   static const String matchesReferencedTable = 'matches';
 
@@ -73,8 +73,10 @@ class SupabaseMatchHistoryRepository implements MatchHistoryRepository {
         .from(MatchHistoryQuery.table)
         .select(MatchHistoryQuery.select)
         .eq(MatchHistoryQuery.participantColumn, query.currentUserId)
-        .eq(MatchHistoryQuery.matchTypeColumn,
-            MatchHistoryQuery.singlesMatchType)
+        .eq(
+          MatchHistoryQuery.matchTypeColumn,
+          MatchType.singles.dbValue,
+        )
         .order(
           MatchHistoryQuery.matchDateOrderColumn,
           referencedTable: MatchHistoryQuery.matchesReferencedTable,
