@@ -4,6 +4,9 @@ import '../models/match_history_item.dart';
 import '../models/match_type.dart';
 
 abstract class MatchHistoryRepository {
+  /// ホーム表示用に、直近の試合だけを取得する。
+  ///
+  /// 戦績画面で全履歴やページングが必要になった場合は別APIとして追加する。
   Future<List<MatchHistoryItem>> fetchRecentMatches(String currentUserId);
 }
 
@@ -15,8 +18,8 @@ class MatchHistoryQuery {
   static const String table = 'match_participants';
   static const String participantColumn = 'participant_id';
   static const String matchTypeColumn = 'matches.match_type';
-  static const String matchDateOrderColumn = 'dt_match';
-  static const String matchesReferencedTable = 'matches';
+  static const String matchDateOrderColumn = 'matches(dt_match)';
+  static const int recentMatchLimit = 5;
 
   static const String select = 'match_id,participant_id,'
       'matches!inner('
@@ -54,7 +57,7 @@ class SupabaseMatchHistoryRepository implements MatchHistoryRepository {
   ) async {
     final query = MatchHistoryQuery.forUser(currentUserId);
     final rows = await fetchRows(query);
-    final items = rows
+    return rows
         .map(
           (row) => MatchHistoryItem.fromRow(
             row,
@@ -62,9 +65,7 @@ class SupabaseMatchHistoryRepository implements MatchHistoryRepository {
           ),
         )
         .whereType<MatchHistoryItem>()
-        .toList()
-      ..sort((a, b) => b.matchDate.compareTo(a.matchDate));
-    return items;
+        .toList();
   }
 
   Future<List<dynamic>> fetchRows(MatchHistoryQuery query) async {
@@ -79,9 +80,9 @@ class SupabaseMatchHistoryRepository implements MatchHistoryRepository {
         )
         .order(
           MatchHistoryQuery.matchDateOrderColumn,
-          referencedTable: MatchHistoryQuery.matchesReferencedTable,
           ascending: false,
-        );
+        )
+        .limit(MatchHistoryQuery.recentMatchLimit);
 
     return response as List<dynamic>;
   }

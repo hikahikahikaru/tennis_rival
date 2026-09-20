@@ -65,7 +65,8 @@ void main() {
           contains('users!match_participants_participant_id_fkey'));
       expect(query['participant_id'], 'eq.$takeshiId');
       expect(query['matches.match_type'], 'eq.1');
-      expect(query['matches.order'], 'dt_match.desc.nullslast');
+      expect(query['order'], 'matches(dt_match).desc.nullslast');
+      expect(query['limit'], '5');
       expect(matches, hasLength(1));
       expect(matches.single.opponentName, '西やん');
       expect(matches.single.scoreText, '7-6 (8-6)');
@@ -114,6 +115,7 @@ void main() {
       expect(MatchHistoryQuery.table, 'match_participants');
       expect(MatchHistoryQuery.participantColumn, 'participant_id');
       expect(MatchHistoryQuery.matchTypeColumn, 'matches.match_type');
+      expect(MatchHistoryQuery.recentMatchLimit, 5);
       expect(MatchType.singles.dbValue, 1);
       expect(MatchHistoryQuery.select, contains('score1_user_id'));
       expect(MatchHistoryQuery.select, contains('set_scores'));
@@ -122,24 +124,9 @@ void main() {
       expect(matches.single.opponentName, '西やん');
     });
 
-    test('sorts matches by date desc and sets by set number', () async {
+    test('preserves DB date order and sorts sets by set number', () async {
       final repository = _FakeSupabaseMatchHistoryRepository(
         rows: [
-          _matchRow(
-            matchId: 'old-match',
-            dtMatch: '2026-08-18 14:00:00+09',
-            winner: takeshiId,
-            score1UserId: takeshiId,
-            participants: [
-              _participant(takeshiId, 'たけし'),
-              _participant(pinchanId, 'ピンちゃん'),
-            ],
-            sets: [
-              _setScore(setNo: 3, score1: 10, score2: 8),
-              _setScore(setNo: 1, score1: 4, score2: 6),
-              _setScore(setNo: 2, score1: 7, score2: 5),
-            ],
-          ),
           _matchRow(
             matchId: 'new-match',
             dtMatch: '2026-08-24 10:00:00+09',
@@ -158,6 +145,21 @@ void main() {
                 tScore1: 8,
                 tScore2: 6,
               ),
+            ],
+          ),
+          _matchRow(
+            matchId: 'old-match',
+            dtMatch: '2026-08-18 14:00:00+09',
+            winner: takeshiId,
+            score1UserId: takeshiId,
+            participants: [
+              _participant(takeshiId, 'たけし'),
+              _participant(pinchanId, 'ピンちゃん'),
+            ],
+            sets: [
+              _setScore(setNo: 3, score1: 10, score2: 8),
+              _setScore(setNo: 1, score1: 4, score2: 6),
+              _setScore(setNo: 2, score1: 7, score2: 5),
             ],
           ),
         ],
