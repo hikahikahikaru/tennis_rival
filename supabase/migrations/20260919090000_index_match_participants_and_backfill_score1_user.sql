@@ -1,6 +1,6 @@
 -- match_participantsの主キーはmatch_id始まりのため、参加者から試合を探す取得を補助する。
-CREATE INDEX IF NOT EXISTS match_participants_participant_id_match_id_idx
-  ON public.match_participants (participant_id, match_id);
+CREATE INDEX IF NOT EXISTS match_participants_participant_id_idx
+  ON public.match_participants (participant_id);
 
 -- seed由来の試合とscore1側ユーザーの対応を明示し、既存データを補完する。
 -- 既存の非NULL値や、対象ユーザー・参加関係が存在しないデータは変更しない。
