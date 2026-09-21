@@ -19,7 +19,7 @@ class MatchHistoryQuery {
   static const String participantColumn = 'participant_id';
   static const String matchTypeColumn = 'matches.match_type';
   static const String matchDateOrderColumn = 'matches(dt_match)';
-  static const int recentMatchLimit = 5;
+  static const int recentMatchLimit = 2;
 
   static const String select = 'match_id,participant_id,'
       'matches!inner('
@@ -46,7 +46,6 @@ class MatchHistoryQuery {
 /// HomeScreenは通信の詳細を持たず、このRepositoryまたはFake実装を受け取る。
 class SupabaseMatchHistoryRepository implements MatchHistoryRepository {
   final SupabaseClient? _client;
-  final Map<String, Future<List<MatchHistoryItem>>> _inFlightRequests = {};
 
   SupabaseMatchHistoryRepository({SupabaseClient? client}) : _client = client;
 
@@ -54,25 +53,6 @@ class SupabaseMatchHistoryRepository implements MatchHistoryRepository {
 
   @override
   Future<List<MatchHistoryItem>> fetchRecentMatches(
-    String currentUserId,
-  ) {
-    final inFlightRequest = _inFlightRequests[currentUserId];
-    if (inFlightRequest != null) {
-      return inFlightRequest;
-    }
-
-    // 同一ユーザーの通信中Futureを共有し、画面の再構築やユーザー再選択による二重取得を防ぐ。
-    late final Future<List<MatchHistoryItem>> request;
-    request = _fetchRecentMatches(currentUserId).whenComplete(() {
-      if (identical(_inFlightRequests[currentUserId], request)) {
-        _inFlightRequests.remove(currentUserId);
-      }
-    });
-    _inFlightRequests[currentUserId] = request;
-    return request;
-  }
-
-  Future<List<MatchHistoryItem>> _fetchRecentMatches(
     String currentUserId,
   ) async {
     final query = MatchHistoryQuery.forUser(currentUserId);

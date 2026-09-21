@@ -7,6 +7,7 @@ import 'package:mobile/models/match_history_item.dart';
 import 'package:mobile/repositories/match_history_repository.dart';
 import 'package:mobile/screens/home_screen.dart';
 import 'package:mobile/screens/match_entry_screen.dart';
+import 'package:mobile/services/match_history_service.dart';
 
 void main() {
   Future<void> pumpHome(
@@ -25,8 +26,10 @@ void main() {
       MaterialApp(
         theme: AppTheme.lightTheme,
         home: HomeScreen(
-          matchHistoryRepository:
-              repository ?? _FakeMatchHistoryRepository.success(_recentMatches),
+          matchHistoryService: MatchHistoryService(
+            repository: repository ??
+                _FakeMatchHistoryRepository.success(_recentMatches),
+          ),
         ),
       ),
     );
@@ -217,7 +220,7 @@ Future<void> _pumpHomeForUser(
   await tester.pumpWidget(MaterialApp(
     theme: AppTheme.lightTheme,
     home: HomeScreen(
-      matchHistoryRepository: repository,
+      matchHistoryService: MatchHistoryService(repository: repository),
       currentUserId: userId,
     ),
   ));

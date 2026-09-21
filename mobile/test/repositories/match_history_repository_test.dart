@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -15,64 +14,6 @@ const String outsiderId = '99999999-9999-9999-9999-999999999999';
 
 void main() {
   group('SupabaseMatchHistoryRepository', () {
-    test('shares an in-flight request for the same user', () async {
-      final response = Completer<List<dynamic>>();
-      final repository = _ControllableSupabaseMatchHistoryRepository({
-        takeshiId: [response],
-      });
-
-      final first = repository.fetchRecentMatches(takeshiId);
-      final second = repository.fetchRecentMatches(takeshiId);
-
-      expect(identical(first, second), isTrue);
-      expect(repository.fetchCounts[takeshiId], 1);
-
-      response.complete(const []);
-      await Future.wait([first, second]);
-    });
-
-    test('starts separate in-flight requests for different users', () async {
-      final takeshiResponse = Completer<List<dynamic>>();
-      final nishiyanResponse = Completer<List<dynamic>>();
-      final repository = _ControllableSupabaseMatchHistoryRepository({
-        takeshiId: [takeshiResponse],
-        nishiyanId: [nishiyanResponse],
-      });
-
-      final takeshiRequest = repository.fetchRecentMatches(takeshiId);
-      final nishiyanRequest = repository.fetchRecentMatches(nishiyanId);
-
-      expect(identical(takeshiRequest, nishiyanRequest), isFalse);
-      expect(repository.fetchCounts[takeshiId], 1);
-      expect(repository.fetchCounts[nishiyanId], 1);
-
-      takeshiResponse.complete(const []);
-      nishiyanResponse.complete(const []);
-      await Future.wait([takeshiRequest, nishiyanRequest]);
-    });
-
-    test('allows retry after a shared request fails', () async {
-      final failedResponse = Completer<List<dynamic>>();
-      final retryResponse = Completer<List<dynamic>>();
-      final repository = _ControllableSupabaseMatchHistoryRepository({
-        takeshiId: [failedResponse, retryResponse],
-      });
-
-      final failedRequest = repository.fetchRecentMatches(takeshiId);
-      final failedExpectation = expectLater(
-        failedRequest,
-        throwsA(isA<Exception>()),
-      );
-      failedResponse.completeError(Exception('DB error'));
-      await failedExpectation;
-
-      final retryRequest = repository.fetchRecentMatches(takeshiId);
-      expect(repository.fetchCounts[takeshiId], 2);
-
-      retryResponse.complete(const []);
-      await retryRequest;
-    });
-
     test('sends filtered single request and converts its HTTP response',
         () async {
       final requests = <http.Request>[];
@@ -125,7 +66,7 @@ void main() {
       expect(query['participant_id'], 'eq.$takeshiId');
       expect(query['matches.match_type'], 'eq.1');
       expect(query['order'], 'matches(dt_match).desc.nullslast');
-      expect(query['limit'], '5');
+      expect(query['limit'], '2');
       expect(matches, hasLength(1));
       expect(matches.single.opponentName, '西やん');
       expect(matches.single.scoreText, '7-6 (8-6)');
@@ -174,7 +115,7 @@ void main() {
       expect(MatchHistoryQuery.table, 'match_participants');
       expect(MatchHistoryQuery.participantColumn, 'participant_id');
       expect(MatchHistoryQuery.matchTypeColumn, 'matches.match_type');
-      expect(MatchHistoryQuery.recentMatchLimit, 5);
+      expect(MatchHistoryQuery.recentMatchLimit, 2);
       expect(MatchType.singles.dbValue, 1);
       expect(MatchHistoryQuery.select, contains('score1_user_id'));
       expect(MatchHistoryQuery.select, contains('set_scores'));
@@ -386,24 +327,6 @@ class _FakeSupabaseMatchHistoryRepository
   Future<List<dynamic>> fetchRows(MatchHistoryQuery query) async {
     lastQuery = query;
     return rows;
-  }
-}
-
-class _ControllableSupabaseMatchHistoryRepository
-    extends SupabaseMatchHistoryRepository {
-  final Map<String, List<Completer<List<dynamic>>>> responses;
-  final Map<String, int> fetchCounts = {};
-
-  _ControllableSupabaseMatchHistoryRepository(this.responses);
-
-  @override
-  Future<List<dynamic>> fetchRows(MatchHistoryQuery query) {
-    fetchCounts.update(
-      query.currentUserId,
-      (count) => count + 1,
-      ifAbsent: () => 1,
-    );
-    return responses[query.currentUserId]!.removeAt(0).future;
   }
 }
 

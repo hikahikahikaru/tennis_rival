@@ -82,4 +82,6 @@ class AppStrings {
   // エラー・ログ用メッセージ
   static String errorOpponentFetch(Object error) =>
       '対戦相手の取得中にエラーが発生しました: $error';
+  static String errorMatchHistoryFetch(Object error) =>
+      '試合履歴の取得中にエラーが発生しました: $error';
 }

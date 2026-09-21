@@ -8,7 +8,7 @@ import '../constants/app_text_styles.dart';
 import '../mocks/mock_data.dart';
 import '../models/match_history_item.dart';
 import '../models/user_stats.dart';
-import '../repositories/match_history_repository.dart';
+import '../services/match_history_service.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/pending_match_card.dart';
 import '../widgets/primary_button.dart';
@@ -18,15 +18,15 @@ import 'match_entry_screen.dart';
 
 /// 既存部品の配置と画面遷移・操作の接続を担当するホーム画面。
 ///
-/// DB通信はRepositoryに委譲し、画面では取得開始と状態表示を担当する。
+/// DB通信とキャッシュはServiceへ委譲し、画面では取得開始と状態表示を担当する。
 /// 戦績の計算はUserStatsに任せる。
 class HomeScreen extends StatefulWidget {
-  final MatchHistoryRepository? matchHistoryRepository;
+  final MatchHistoryService? matchHistoryService;
   final String? currentUserId;
 
   const HomeScreen({
     super.key,
-    this.matchHistoryRepository,
+    this.matchHistoryService,
     this.currentUserId,
   });
 
@@ -39,7 +39,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late MatchHistoryRepository _matchHistoryRepository;
+  late MatchHistoryService _matchHistoryService;
   late String _currentUserId;
   var _isRecentMatchesLoading = true;
   Object? _recentMatchesError;
@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void didUpdateWidget(covariant HomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.matchHistoryRepository != widget.matchHistoryRepository ||
+    if (oldWidget.matchHistoryService != widget.matchHistoryService ||
         oldWidget.currentUserId != widget.currentUserId) {
       _setDependencies();
       _loadRecentMatches();
@@ -65,8 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _setDependencies() {
-    _matchHistoryRepository =
-        widget.matchHistoryRepository ?? SupabaseMatchHistoryRepository();
+    _matchHistoryService =
+        widget.matchHistoryService ?? MatchHistoryService.instance;
     // 認証未実装のため、DB取得時の閲覧者はseed.sqlの仮ユーザーに固定する。
     _currentUserId = widget.currentUserId ?? MockData.currentUserId;
   }
@@ -84,8 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final matches =
-          await _matchHistoryRepository.fetchRecentMatches(_currentUserId);
+      final matches = await _matchHistoryService.loadRecentMatches(
+        currentUserId: _currentUserId,
+      );
 
       if (!mounted || requestId != _recentMatchesRequestId) {
         return;
