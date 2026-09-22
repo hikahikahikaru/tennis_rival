@@ -6,6 +6,7 @@ import 'constants/app_strings.dart';
 import 'constants/app_theme.dart';
 import 'constants/supabase_constants.dart';
 import 'screens/home_screen.dart';
+import 'services/match_history_service.dart';
 import 'services/opponent_service.dart';
 
 Future<void> main() async {
@@ -22,8 +23,18 @@ Future<void> main() async {
   // awaitせずに呼び出すことで、画面の描画をブロックせず高速に起動しつつ、
   // 後でユーザーが対戦相手選択を開いた際に即時表示できるようにキャッシュします。
   unawaited(_preloadOpponents());
+  unawaited(_preloadMatchHistory());
 
   runApp(const MyApp());
+}
+
+// HomeScreenと同じServiceを使い、画面描画を待たず最近の試合をキャッシュする。
+Future<void> _preloadMatchHistory() async {
+  try {
+    await MatchHistoryService.instance.loadRecentMatches();
+  } catch (e) {
+    debugPrint(AppStrings.errorMatchHistoryFetch(e));
+  }
 }
 
 // 先読み専用のエラー握りつぶし。失敗時の再試行導線はOpponentPickerSheet側に委ねる。

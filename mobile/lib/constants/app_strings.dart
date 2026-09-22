@@ -15,6 +15,9 @@ class AppStrings {
   static const String homeNotificationUnavailable = '通知機能は未実装です';
   static const String homePendingMatchUnavailable = '確認待ち画面は未実装です';
   static const String homeNavUnavailable = 'この機能は未実装です';
+  static const String homeRecentMatchesLoading = '試合履歴を読み込み中です';
+  static const String homeRecentMatchesEmpty = '最近の試合はまだありません';
+  static const String homeRecentMatchesFetchFailed = '試合履歴の取得に失敗しました';
 
   // 試合登録画面で使用
   static const String matchInfo = '試合情報';
@@ -32,7 +35,10 @@ class AppStrings {
   static const String dummyOpponentSearch = 'ここに将来、対戦相手の検索・選択UIが入ります';
   static const String matchCardWin = 'WIN';
   static const String matchCardLose = 'LOSE';
+  static const String matchCardUnknown = '判定不能';
   static const String matchCardVs = 'vs';
+  static const String matchOpponentUnknown = '対戦相手不明';
+  static const String matchScoreUnknown = 'スコア不明';
   // StatsCard
   static const String statsCardTitle = '今月の戦績';
   static const String statsCardWinRateLabel = '勝率';
@@ -76,4 +82,6 @@ class AppStrings {
   // エラー・ログ用メッセージ
   static String errorOpponentFetch(Object error) =>
       '対戦相手の取得中にエラーが発生しました: $error';
+  static String errorMatchHistoryFetch(Object error) =>
+      '試合履歴の取得中にエラーが発生しました: $error';
 }

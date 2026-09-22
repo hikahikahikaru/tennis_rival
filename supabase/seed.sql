@@ -27,9 +27,9 @@ INSERT INTO public.group_members (group_id, user_id, role) VALUES
 -- ▲▲▲ ここまで ▲▲▲
 
 -- 5. 試合の大枠 (matches) を登録
-INSERT INTO public.matches (match_id, dt_match, match_type, total_set_amount, winner) VALUES
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '2026-08-24 10:00:00+09', 1, 3, '11111111-1111-1111-1111-111111111111'),
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '2026-08-18 14:00:00+09', 1, 3, '11111111-1111-1111-1111-111111111111');
+INSERT INTO public.matches (match_id, dt_match, match_type, total_set_amount, winner, score1_user_id) VALUES
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '2026-08-24 10:00:00+09', 1, 3, '11111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111'),
+  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '2026-08-18 14:00:00+09', 1, 3, '11111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111');
 
 -- 6. 試合参加者 (match_participants) を紐付け
 INSERT INTO public.match_participants (match_id, participant_id) VALUES
@@ -45,4 +45,3 @@ INSERT INTO public.set_scores (match_id, set_no, score1, score2, set_winner) VAL
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 1, 4, 6, '33333333-3333-3333-3333-333333333333'),
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 2, 7, 5, '11111111-1111-1111-1111-111111111111'),
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 3, 10, 8, '11111111-1111-1111-1111-111111111111');
-  

@@ -16,6 +16,8 @@ class AppColors {
   static const Color matchWinBackground = Color(0xFFEAF4EE); // WINの背景色
   static const Color matchLose = Color(0xFFB3261E); // LOSEの文字色
   static const Color matchLoseBackground = Color(0xFFFDE9E8); // LOSEの背景色
+  static const Color matchUnknown = Color(0xFF53615E); // 判定不能の文字色
+  static const Color matchUnknownBackground = Color(0xFFEFF3F1); // 判定不能の背景色
 
   static const Color pendingMatchBackground = Color(0xFFFFF8E1);
   static const Color pendingMatchBorder = Color(0xFFFFECB3);
