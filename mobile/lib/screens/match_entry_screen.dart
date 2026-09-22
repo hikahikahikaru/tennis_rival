@@ -5,9 +5,12 @@ import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
+import '../mocks/mock_data.dart';
 import '../models/match_format.dart';
 import '../models/match_set_score.dart';
 import '../models/user_model.dart';
+import '../services/match_history_service.dart';
+import '../services/match_registration_service.dart';
 import '../widgets/match_date_picker.dart';
 import '../widgets/opponent_picker_sheet.dart';
 import '../widgets/primary_button.dart';
@@ -34,6 +37,62 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
 
   // ControllerはScoreInputSection内に閉じ込め、確認画面へ渡すのは入力値のスナップショットだけにする。
   List<MatchSetScore>? _confirmSetScores;
+  // 確認画面での連続タップによる同一試合の重複登録を防ぐ。
+  bool _isRegistering = false;
+
+  // DB登録後の画面遷移やエラー表示など、画面固有の制御だけを担当する。
+  Future<void> _registerMatch(BuildContext confirmContext) async {
+    if (_isRegistering) {
+      return;
+    }
+
+    final opponent = _selectedOpponentUser;
+    final setScores = _confirmSetScores;
+    if (opponent == null || setScores == null) {
+      return;
+    }
+
+    _isRegistering = true;
+    try {
+      // 登録データへの変換とDB通信はServiceに委譲し、ScreenはUI状態を扱う。
+      await MatchRegistrationService.instance.registerSinglesMatch(
+        matchDate: _selectedDate,
+        matchFormat: _selectedFormat,
+        currentUserId: MockData.currentUserId,
+        opponentUserId: opponent.id,
+        setScores: setScores,
+      );
+    } catch (error) {
+      debugPrint(AppStrings.errorMatchRegistration(error));
+      if (!confirmContext.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(confirmContext).showSnackBar(
+        const SnackBar(
+          content: Text(AppStrings.matchRegistrationFailed),
+        ),
+      );
+      return;
+    } finally {
+      _isRegistering = false;
+    }
+
+    if (!confirmContext.mounted) {
+      return;
+    }
+
+    // 次にホームを開いたとき、新しく登録した試合を再取得できるようにする。
+    MatchHistoryService.instance.clearCache();
+    Navigator.push(
+      confirmContext,
+      MaterialPageRoute(
+        builder: (requestSentContext) => RequestSentScreen(
+          opponentName: _selectedOpponent,
+        ),
+      ),
+    );
+  }
 
   // カレンダー部品を呼び出す処理
   Future<void> _handleDateSelection() async {
@@ -84,16 +143,7 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
           matchFormat: _selectedFormat,
           setScores: setScores,
           onEdit: () => Navigator.pop(confirmContext),
-          onRequestConfirmation: () {
-            Navigator.push(
-              confirmContext,
-              MaterialPageRoute(
-                builder: (requestSentContext) => RequestSentScreen(
-                  opponentName: _selectedOpponent,
-                ),
-              ),
-            );
-          },
+          onRequestConfirmation: () => _registerMatch(confirmContext),
         ),
       ),
     );

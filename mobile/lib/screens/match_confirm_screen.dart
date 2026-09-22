@@ -17,7 +17,7 @@ class MatchConfirmScreen extends StatelessWidget {
   final List<MatchSetScore> setScores;
   final String? memo;
   final VoidCallback onEdit;
-  final VoidCallback onRequestConfirmation;
+  final Future<void> Function() onRequestConfirmation;
 
   const MatchConfirmScreen({
     super.key,
@@ -310,7 +310,9 @@ class MatchConfirmScreen extends StatelessWidget {
         PrimaryButton(
           label: AppStrings.matchConfirmRequest,
           icon: Icons.send_outlined,
-          onPressed: onRequestConfirmation,
+          onPressed: () {
+            onRequestConfirmation();
+          },
         ),
       ],
     );
