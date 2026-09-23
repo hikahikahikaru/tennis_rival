@@ -78,12 +78,12 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
       _isRegistering = false;
     }
 
+    // 画面離脱後でも、登録済み試合を次回のホーム表示で再取得できるようにする。
+    MatchHistoryService.instance.clearCache();
     if (!confirmContext.mounted) {
       return;
     }
 
-    // 次にホームを開いたとき、新しく登録した試合を再取得できるようにする。
-    MatchHistoryService.instance.clearCache();
     Navigator.push(
       confirmContext,
       MaterialPageRoute(
