@@ -8,6 +8,7 @@ class MatchRegistration {
   final String currentUserId;
   final String opponentUserId;
   final List<MatchSetScore> setScores;
+  final String clientRequestId;
 
   const MatchRegistration({
     required this.matchDate,
@@ -15,6 +16,7 @@ class MatchRegistration {
     required this.currentUserId,
     required this.opponentUserId,
     required this.setScores,
+    required this.clientRequestId,
   });
 
   // migrationで定義したcreate_singles_match関数の引数名に合わせて変換する。
@@ -34,6 +36,7 @@ class MatchRegistration {
             'tScore2': setScore.opponentTiebreakScore,
           },
       ],
+      'p_client_request_id': clientRequestId,
     };
   }
 }

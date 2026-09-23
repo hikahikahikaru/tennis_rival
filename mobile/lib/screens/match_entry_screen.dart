@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
@@ -37,6 +38,8 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
 
   // ControllerはScoreInputSection内に閉じ込め、確認画面へ渡すのは入力値のスナップショットだけにする。
   List<MatchSetScore>? _confirmSetScores;
+  // 確認画面での再送時も同じ試合として扱えるよう、試行IDを保持する。
+  String? _registrationRequestId;
   // 確認画面での連続タップによる同一試合の重複登録を防ぐ。
   bool _isRegistering = false;
 
@@ -61,6 +64,7 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
         currentUserId: MockData.currentUserId,
         opponentUserId: opponent.id,
         setScores: setScores,
+        clientRequestId: _registrationRequestId!,
       );
     } catch (error) {
       debugPrint(AppStrings.errorMatchRegistration(error));
@@ -134,6 +138,8 @@ class _MatchEntryScreenState extends State<MatchEntryScreen> {
       return;
     }
 
+    // 修正後に再確認した試合は別の登録として扱い、確認画面内の再送では同じIDを使う。
+    _registrationRequestId = const Uuid().v4();
     Navigator.push(
       context,
       MaterialPageRoute(

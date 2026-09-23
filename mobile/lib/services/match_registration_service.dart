@@ -21,6 +21,7 @@ class MatchRegistrationService {
     required String currentUserId,
     required String opponentUserId,
     required List<MatchSetScore> setScores,
+    required String clientRequestId,
   }) {
     final registration = MatchRegistration(
       matchDate: matchDate,
@@ -28,6 +29,7 @@ class MatchRegistrationService {
       currentUserId: currentUserId,
       opponentUserId: opponentUserId,
       setScores: setScores,
+      clientRequestId: clientRequestId,
     );
     return _repository.registerMatch(registration);
   }

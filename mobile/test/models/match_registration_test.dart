@@ -5,6 +5,7 @@ import 'package:mobile/models/match_set_score.dart';
 
 const currentUserId = '11111111-1111-1111-1111-111111111111';
 const opponentUserId = '22222222-2222-2222-2222-222222222222';
+const clientRequestId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 
 void main() {
   group('MatchRegistration', () {
@@ -15,6 +16,7 @@ void main() {
         matchFormat: MatchFormat.threeSets,
         currentUserId: currentUserId,
         opponentUserId: opponentUserId,
+        clientRequestId: clientRequestId,
         setScores: [
           const MatchSetScore(
             myScore: 7,
@@ -31,6 +33,7 @@ void main() {
       expect(parameters['p_total_set_amount'], 3);
       expect(parameters['p_score1_user_id'], currentUserId);
       expect(parameters['p_score2_user_id'], opponentUserId);
+      expect(parameters['p_client_request_id'], clientRequestId);
       expect(parameters, isNot(contains('p_winner')));
       expect(parameters['p_set_scores'], [
         {
