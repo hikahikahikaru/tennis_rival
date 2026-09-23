@@ -78,10 +78,13 @@ class AppStrings {
   static const String matchConfirmNotice = '送信後は相手の承認まで「確認待ち」になります';
   static const String matchConfirmEdit = '修正する';
   static const String matchConfirmRequest = '相手に確認依頼を送る';
+  static const String matchRegistrationFailed = '試合結果の登録に失敗しました。もう一度お試しください';
 
   // エラー・ログ用メッセージ
   static String errorOpponentFetch(Object error) =>
       '対戦相手の取得中にエラーが発生しました: $error';
   static String errorMatchHistoryFetch(Object error) =>
       '試合履歴の取得中にエラーが発生しました: $error';
+  static String errorMatchRegistration(Object error) =>
+      '試合結果の登録中にエラーが発生しました: $error';
 }

@@ -97,6 +97,31 @@ void main() {
 
       expect(repository.fetchCounts[userA], 2);
     });
+
+    test('does not cache a response that started before cache invalidation',
+        () async {
+      final staleResponse = Completer<List<MatchHistoryItem>>();
+      final freshResponse = Completer<List<MatchHistoryItem>>();
+      final repository = _FakeMatchHistoryRepository(responses: {
+        userA: [staleResponse, freshResponse],
+      });
+      final service = MatchHistoryService(repository: repository);
+
+      final staleRequest = service.loadRecentMatches(currentUserId: userA);
+      service.clearCache();
+      final freshRequest = service.loadRecentMatches(currentUserId: userA);
+
+      final staleMatch = _matchFor(userA, '古い試合');
+      staleResponse.complete([staleMatch]);
+      await staleRequest;
+      expect(service.cachedRecentMatches(currentUserId: userA), isEmpty);
+
+      final freshMatch = _matchFor(userA, '新しい試合');
+      freshResponse.complete([freshMatch]);
+      await freshRequest;
+
+      expect(service.cachedRecentMatches(currentUserId: userA), [freshMatch]);
+    });
   });
 }
 
@@ -126,11 +151,15 @@ class _FakeMatchHistoryRepository implements MatchHistoryRepository {
 
 List<MatchHistoryItem> _matchesFor(String userId) {
   return [
-    MatchHistoryItem(
-      matchDate: DateTime(2026, 8, 24),
-      opponentName: userId == userA ? '西やん' : 'たけし',
-      scoreText: '6-4, 6-3',
-      isWin: true,
-    ),
+    _matchFor(userId, userId == userA ? '西やん' : 'たけし'),
   ];
+}
+
+MatchHistoryItem _matchFor(String userId, String opponentName) {
+  return MatchHistoryItem(
+    matchDate: DateTime(2026, 8, 24),
+    opponentName: opponentName,
+    scoreText: '6-4, 6-3',
+    isWin: true,
+  );
 }

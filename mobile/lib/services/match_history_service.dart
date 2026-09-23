@@ -12,6 +12,7 @@ class MatchHistoryService {
   final MatchHistoryRepository _repository;
   final Map<String, List<MatchHistoryItem>> _cache = {};
   final Map<String, Future<List<MatchHistoryItem>>> _inFlightRequests = {};
+  int _cacheGeneration = 0;
 
   MatchHistoryService({MatchHistoryRepository? repository})
       : _repository = repository ?? SupabaseMatchHistoryRepository();
@@ -37,8 +38,9 @@ class MatchHistoryService {
     }
 
     // プリロードと画面取得が重なっても、同一ユーザーでは一つの通信完了を共有する。
+    final requestGeneration = _cacheGeneration;
     late final Future<List<MatchHistoryItem>> request;
-    request = _fetchAndCache(targetUserId).whenComplete(() {
+    request = _fetchAndCache(targetUserId, requestGeneration).whenComplete(() {
       if (identical(_inFlightRequests[targetUserId], request)) {
         _inFlightRequests.remove(targetUserId);
       }
@@ -47,13 +49,21 @@ class MatchHistoryService {
     return request;
   }
 
-  Future<List<MatchHistoryItem>> _fetchAndCache(String userId) async {
+  Future<List<MatchHistoryItem>> _fetchAndCache(
+    String userId,
+    int requestGeneration,
+  ) async {
     final matches = await _repository.fetchRecentMatches(userId);
-    _cache[userId] = matches;
+    // 無効化前に開始した取得結果で、新しいキャッシュを上書きしない。
+    if (requestGeneration == _cacheGeneration) {
+      _cache[userId] = matches;
+    }
     return matches;
   }
 
   void clearCache() {
+    // 進行中の通信は止めず、完了時に古い結果をキャッシュしないよう世代を更新する。
+    _cacheGeneration++;
     _cache.clear();
     _inFlightRequests.clear();
   }
