@@ -1,5 +1,4 @@
 import 'match_format.dart';
-import 'match_score.dart';
 import 'match_set_score.dart';
 
 /// 登録時にDBへ保存する、シングルス1試合分の入力値。
@@ -18,32 +17,14 @@ class MatchRegistration {
     required this.setScores,
   });
 
-  // MatchScoreと同じ勝敗判定を使い、matches.winnerに保存するユーザーIDを決める。
-  MatchScore get _matchScore => MatchScore(
-        matchFormat: matchFormat,
-        setScores: setScores,
-      );
-
-  String? get winnerUserId {
-    if (_matchScore.isMyMatchWin) {
-      return currentUserId;
-    }
-
-    if (_matchScore.isOpponentMatchWin) {
-      return opponentUserId;
-    }
-
-    return null;
-  }
-
   // migrationで定義したcreate_singles_match関数の引数名に合わせて変換する。
+  // 試合単位の勝者は、DB関数内で各セットの得点から決定する。
   Map<String, dynamic> toRpcParameters() {
     return {
       'p_dt_match': matchDate.toUtc().toIso8601String(),
       'p_total_set_amount': matchFormat.setCount,
       'p_score1_user_id': currentUserId,
       'p_score2_user_id': opponentUserId,
-      'p_winner': winnerUserId,
       'p_set_scores': [
         for (final setScore in setScores)
           {

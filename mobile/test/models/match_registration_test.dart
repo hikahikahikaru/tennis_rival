@@ -9,7 +9,7 @@ const opponentUserId = '22222222-2222-2222-2222-222222222222';
 void main() {
   group('MatchRegistration', () {
     // 登録者をscore1側として保存し、試合履歴の表示順と一致することを確認する。
-    test('converts registrant-side scores and winner to RPC parameters', () {
+    test('converts registrant-side scores to RPC parameters', () {
       final registration = MatchRegistration(
         matchDate: DateTime.utc(2026, 9, 22),
         matchFormat: MatchFormat.threeSets,
@@ -31,7 +31,7 @@ void main() {
       expect(parameters['p_total_set_amount'], 3);
       expect(parameters['p_score1_user_id'], currentUserId);
       expect(parameters['p_score2_user_id'], opponentUserId);
-      expect(parameters['p_winner'], currentUserId);
+      expect(parameters, isNot(contains('p_winner')));
       expect(parameters['p_set_scores'], [
         {
           'score1': 7,
@@ -46,21 +46,6 @@ void main() {
           'tScore2': null,
         },
       ]);
-    });
-
-    // 試合単位の勝者はセットごとの勝敗から決定する。
-    test('uses opponent as winner when opponent wins the match', () {
-      final registration = MatchRegistration(
-        matchDate: DateTime.utc(2026, 9, 22),
-        matchFormat: MatchFormat.oneSet,
-        currentUserId: currentUserId,
-        opponentUserId: opponentUserId,
-        setScores: [
-          const MatchSetScore(myScore: 4, opponentScore: 6),
-        ],
-      );
-
-      expect(registration.winnerUserId, opponentUserId);
     });
   });
 }
