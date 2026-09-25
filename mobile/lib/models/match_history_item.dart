@@ -1,25 +1,45 @@
 import '../constants/app_strings.dart';
 import 'match_set_score.dart';
+import 'match_format.dart';
 import 'match_type.dart';
 
 /// ホーム画面の最近の試合へ表示する、閲覧者視点へ変換済みの試合履歴。
 class MatchHistoryItem {
+  final String? matchId;
   final DateTime matchDate;
+  final String currentUserName;
   final String opponentName;
   final String scoreText;
   final bool? isWin;
+  final MatchFormat matchFormat;
+  final List<MatchSetScore> setScores;
 
   const MatchHistoryItem({
+    this.matchId,
     required this.matchDate,
+    this.currentUserName = AppStrings.scoreMy,
     required this.opponentName,
     required this.scoreText,
     required this.isWin,
+    this.matchFormat = MatchFormat.oneSet,
+    this.setScores = const [],
   });
 
   String get displayDate {
     final localDate = matchDate.toLocal();
     return '${localDate.month}月${localDate.day}日';
   }
+
+  String get detailDate {
+    final localDate = matchDate.toLocal();
+    final weekday = AppStrings.weekdaysJapanese[localDate.weekday - 1];
+    return '${localDate.year}年${localDate.month}月${localDate.day}日（$weekday）';
+  }
+
+  int get myWonSetCount => setScores.where((score) => score.isMyWin).length;
+
+  int get opponentWonSetCount =>
+      setScores.where((score) => score.opponentScore > score.myScore).length;
 
   /// DB行を閲覧者視点の表示データへ変換する。
   static MatchHistoryItem? fromRow(
@@ -45,19 +65,47 @@ class MatchHistoryItem {
     }
 
     return MatchHistoryItem(
+      matchId: matchMap['match_id'] as String?,
       matchDate: _parseDate(matchMap['dt_match']),
+      currentUserName: _findCurrentUserName(participantRows, currentUserId),
       opponentName: _findOpponentName(participantRows, currentUserId),
       scoreText: _buildScoreText(
-        matchMap: matchMap,
-        participantIds: participantIds,
-        currentUserId: currentUserId,
+        setScores: _buildSetScores(
+          matchMap: matchMap,
+          participantIds: participantIds,
+          currentUserId: currentUserId,
+        ),
       ),
       isWin: _resolveResult(
         winnerId: matchMap['winner'] as String?,
         participantIds: participantIds,
         currentUserId: currentUserId,
       ),
+      matchFormat: _formatFromSetCount(matchMap['total_set_amount']),
+      setScores: _buildSetScores(
+        matchMap: matchMap,
+        participantIds: participantIds,
+        currentUserId: currentUserId,
+      ),
     );
+  }
+
+  static String _findCurrentUserName(
+    List<dynamic> participantRows,
+    String currentUserId,
+  ) {
+    for (final participantRow in participantRows) {
+      final participant = _asMap(participantRow);
+      if (participant?['participant_id'] != currentUserId) {
+        continue;
+      }
+
+      final userName = _asMap(participant?['users'])?['user_name'] as String?;
+      if (userName != null && userName.isNotEmpty) {
+        return userName;
+      }
+    }
+    return AppStrings.scoreMy;
   }
 
   static String _findOpponentName(
@@ -79,7 +127,7 @@ class MatchHistoryItem {
     return AppStrings.matchOpponentUnknown;
   }
 
-  static String _buildScoreText({
+  static List<MatchSetScore> _buildSetScores({
     required Map<String, dynamic> matchMap,
     required Set<String> participantIds,
     required String currentUserId,
@@ -87,7 +135,7 @@ class MatchHistoryItem {
     final score1UserId = matchMap['score1_user_id'] as String?;
     if (score1UserId == null || !participantIds.contains(score1UserId)) {
       // 登録者側が不明な保存済みデータでは、スコアの左右を推測しない。
-      return AppStrings.matchScoreUnknown;
+      return const [];
     }
 
     final viewerIsScore1 = score1UserId == currentUserId;
@@ -113,9 +161,24 @@ class MatchHistoryItem {
     }).toList();
 
     if (setScores.isEmpty) {
+      return const [];
+    }
+    return setScores;
+  }
+
+  static String _buildScoreText({
+    required List<MatchSetScore> setScores,
+  }) {
+    if (setScores.isEmpty) {
       return AppStrings.matchScoreUnknown;
     }
     return setScores.map((score) => score.displayScore).join(', ');
+  }
+
+  static MatchFormat _formatFromSetCount(Object? value) {
+    return value != null && _asInt(value) == MatchFormat.threeSets.setCount
+        ? MatchFormat.threeSets
+        : MatchFormat.oneSet;
   }
 
   static bool? _resolveResult({

@@ -83,6 +83,11 @@ class AppSizes {
   static const double successIconCircleSize = 100.0;
   static const double successIconSize = 48.0;
 
+  // 個人メモ入力用のサイズ
+  static const int matchMemoMinLines = 3;
+  static const int matchMemoMaxLines = 4;
+  static const double matchMemoProgressSize = 20.0;
+
   // 画面全体の共通サイズ
   static const double screenPadding = 16.0;
 
