@@ -6,7 +6,7 @@ import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 import '../models/match_history_item.dart';
 
-/// 試合履歴の詳細と個人メモの編集を表示する再利用可能なBottomSheet。
+/// 試合履歴の詳細を表示する再利用可能なBottomSheet。
 class MatchDetailSheet extends StatefulWidget {
   final MatchHistoryItem match;
 
