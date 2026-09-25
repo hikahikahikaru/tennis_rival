@@ -210,6 +210,13 @@ class _MatchDetailSheetState extends State<MatchDetailSheet> {
   }
 
   Widget _buildSetCount(MatchHistoryItem match) {
+    if (match.setScores.isEmpty) {
+      return const Text(
+        AppStrings.matchScoreUnknown,
+        style: AppTextStyles.opponentPickerEmpty,
+      );
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSizes.matchCardPadding),
