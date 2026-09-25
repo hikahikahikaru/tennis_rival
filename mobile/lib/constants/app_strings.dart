@@ -84,8 +84,6 @@ class AppStrings {
   static const String matchConfirmMemo = '個人メモ';
   static const String matchConfirmMemoNote = '相手には表示されません';
   static const String matchConfirmMemoEmpty = 'なし';
-  static const String matchMemoSave = '保存する';
-  static const String matchMemoSaving = '保存中...';
   static const String matchConfirmWin = 'あなたの勝ち';
   static const String matchConfirmLose = 'あなたの負け';
   static const String matchConfirmUndecided = '結果未確定';

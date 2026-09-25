@@ -5,7 +5,6 @@ import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 import '../models/match_history_item.dart';
-import 'match_memo_field.dart';
 
 /// 試合履歴の詳細と個人メモの編集を表示する再利用可能なBottomSheet。
 class MatchDetailSheet extends StatefulWidget {
@@ -35,8 +34,6 @@ class MatchDetailSheet extends StatefulWidget {
 }
 
 class _MatchDetailSheetState extends State<MatchDetailSheet> {
-  var _memoText = '';
-
   @override
   Widget build(BuildContext context) {
     final match = widget.match;
@@ -78,15 +75,19 @@ class _MatchDetailSheetState extends State<MatchDetailSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(match.currentUserName,
-                      style: AppTextStyles.matchCardOpponent),
+                  _buildPlayerName(
+                    match.currentUserName,
+                    showWin: match.isWin == true,
+                  ),
                   const Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: AppSizes.spacingLarge),
                     child: Text(AppStrings.matchCardVs),
                   ),
-                  Text(match.opponentName,
-                      style: AppTextStyles.matchCardOpponent),
+                  _buildPlayerName(
+                    match.opponentName,
+                    showWin: match.isWin == false,
+                  ),
                 ],
               ),
               const SizedBox(height: AppSizes.spacingMedium),
@@ -101,11 +102,6 @@ class _MatchDetailSheetState extends State<MatchDetailSheet> {
               const SizedBox(height: AppSizes.spacingMedium),
               _buildSetCount(match),
               const SizedBox(height: AppSizes.spacingMedium),
-              MatchMemoField(
-                initialValue: _memoText,
-                onSave: _handleMemoSave,
-              ),
-              const SizedBox(height: AppSizes.spacingMedium),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -117,6 +113,36 @@ class _MatchDetailSheetState extends State<MatchDetailSheet> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPlayerName(String name, {required bool showWin}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(name, style: AppTextStyles.matchCardOpponent),
+        if (showWin) ...[
+          const SizedBox(height: AppSizes.spacingSmall),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.matchCardStatusHorizontalPadding,
+              vertical: AppSizes.matchCardStatusVerticalPadding,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.matchWinBackground,
+              borderRadius: BorderRadius.circular(
+                AppSizes.matchCardStatusRadius,
+              ),
+            ),
+            child: Text(
+              AppStrings.matchCardWin,
+              style: AppTextStyles.matchCardStatus.copyWith(
+                color: AppColors.matchWin,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -201,11 +227,5 @@ class _MatchDetailSheetState extends State<MatchDetailSheet> {
         ],
       ),
     );
-  }
-
-  void _handleMemoSave(String memo) {
-    setState(() {
-      _memoText = memo.trim();
-    });
   }
 }
