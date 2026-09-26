@@ -13,6 +13,7 @@ class MatchHistoryItem {
   final bool? isWin;
   final MatchFormat matchFormat;
   final List<MatchSetScore> setScores;
+  final String? personalMemo;
 
   const MatchHistoryItem({
     this.matchId,
@@ -23,6 +24,7 @@ class MatchHistoryItem {
     required this.isWin,
     this.matchFormat = MatchFormat.oneSet,
     this.setScores = const [],
+    this.personalMemo,
   });
 
   String get displayDate {
@@ -87,7 +89,36 @@ class MatchHistoryItem {
         participantIds: participantIds,
         currentUserId: currentUserId,
       ),
+      personalMemo: _findPersonalMemo(
+        rowMap?['match_memos'],
+        currentUserId,
+      ),
     );
+  }
+
+  static String? _findPersonalMemo(
+    Object? memoResponse,
+    String currentUserId,
+  ) {
+    final memoRows = switch (memoResponse) {
+      Map() => [memoResponse],
+      List() => memoResponse,
+      _ => const <Object?>[],
+    };
+
+    for (final memoRow in memoRows) {
+      final memo = _asMap(memoRow);
+      if (memo?['user_id'] != currentUserId) {
+        continue;
+      }
+
+      final value = memo?['memo'];
+      if (value is! String || value.trim().isEmpty) {
+        return null;
+      }
+      return value.trim();
+    }
+    return null;
   }
 
   static String _findCurrentUserName(
