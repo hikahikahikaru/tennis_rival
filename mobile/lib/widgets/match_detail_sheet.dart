@@ -73,20 +73,23 @@ class _MatchDetailSheetState extends State<MatchDetailSheet> {
               Text(match.detailDate, style: AppTextStyles.selectionFieldTitle),
               const SizedBox(height: AppSizes.spacingSmall),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildPlayerName(
-                    match.currentUserName,
-                    showWin: match.isWin == true,
+                  Expanded(
+                    child: _buildPlayerName(
+                      match.currentUserName,
+                      showWin: match.isWin == true,
+                    ),
                   ),
                   const Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: AppSizes.spacingLarge),
                     child: Text(AppStrings.matchCardVs),
                   ),
-                  _buildPlayerName(
-                    match.opponentName,
-                    showWin: match.isWin == false,
+                  Expanded(
+                    child: _buildPlayerName(
+                      match.opponentName,
+                      showWin: match.isWin == false,
+                    ),
                   ),
                 ],
               ),
@@ -120,7 +123,12 @@ class _MatchDetailSheetState extends State<MatchDetailSheet> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(name, style: AppTextStyles.matchCardOpponent),
+        Text(
+          name,
+          textAlign: TextAlign.center,
+          softWrap: true,
+          style: AppTextStyles.matchCardOpponent,
+        ),
         if (showWin) ...[
           const SizedBox(height: AppSizes.spacingSmall),
           Container(
