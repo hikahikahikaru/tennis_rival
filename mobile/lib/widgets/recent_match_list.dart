@@ -12,6 +12,7 @@ class RecentMatchList extends StatelessWidget {
   final Object? error;
   final List<MatchHistoryItem> matches;
   final VoidCallback onRetry;
+  final Future<void> Function(MatchHistoryItem match) onMatchTap;
 
   const RecentMatchList({
     super.key,
@@ -19,6 +20,7 @@ class RecentMatchList extends StatelessWidget {
     required this.error,
     required this.matches,
     required this.onRetry,
+    required this.onMatchTap,
   });
 
   @override
@@ -74,6 +76,7 @@ class RecentMatchList extends StatelessWidget {
             opponentName: match.opponentName,
             score: match.scoreText,
             isWin: match.isWin,
+            onTap: () => onMatchTap(match),
           ),
           const SizedBox(height: AppSizes.spacingMedium),
         ],

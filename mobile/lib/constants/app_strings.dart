@@ -18,6 +18,15 @@ class AppStrings {
   static const String homeRecentMatchesLoading = '試合履歴を読み込み中です';
   static const String homeRecentMatchesEmpty = '最近の試合はまだありません';
   static const String homeRecentMatchesFetchFailed = '試合履歴の取得に失敗しました';
+  static const List<String> weekdaysJapanese = [
+    '月',
+    '火',
+    '水',
+    '木',
+    '金',
+    '土',
+    '日',
+  ];
 
   // 試合登録画面で使用
   static const String matchInfo = '試合情報';
@@ -39,6 +48,9 @@ class AppStrings {
   static const String matchCardVs = 'vs';
   static const String matchOpponentUnknown = '対戦相手不明';
   static const String matchScoreUnknown = 'スコア不明';
+  static const String matchDetailTitle = '試合詳細';
+  static const String matchDetailSetCount = 'セットカウント';
+  static const String matchDetailClose = '閉じる';
   // StatsCard
   static const String statsCardTitle = '今月の戦績';
   static const String statsCardWinRateLabel = '勝率';

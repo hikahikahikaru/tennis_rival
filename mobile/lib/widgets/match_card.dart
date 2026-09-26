@@ -10,6 +10,7 @@ class MatchCard extends StatelessWidget {
   final String opponentName;
   final String score;
   final bool? isWin;
+  final VoidCallback? onTap;
 
   const MatchCard({
     super.key,
@@ -17,6 +18,7 @@ class MatchCard extends StatelessWidget {
     required this.opponentName,
     required this.score,
     required this.isWin,
+    this.onTap,
   });
 
   @override
@@ -38,67 +40,71 @@ class MatchCard extends StatelessWidget {
     };
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.matchCardPadding),
-        child: Row(
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: AppSizes.matchCardIconSize,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(height: AppSizes.matchDateIconSpacing),
-                Text(
-                  date,
-                  style: AppTextStyles.matchCardDate,
-                ),
-              ],
-            ),
-            const SizedBox(width: AppSizes.matchDateIconSpacing),
-            Container(
-              width: AppSizes.matchDateDividerWidth,
-              height: AppSizes.matchDateDividerHeight,
-              color: AppColors.cardBorder,
-            ),
-            const SizedBox(width: AppSizes.matchResultSpacing),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSizes.matchCardPadding),
+          child: Row(
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    '${AppStrings.matchCardVs} $opponentName',
-                    style: AppTextStyles.matchCardOpponent,
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: AppSizes.matchCardIconSize,
+                    color: AppColors.primary,
                   ),
-                  const SizedBox(height: AppSizes.matchContentSpacing),
+                  const SizedBox(height: AppSizes.matchDateIconSpacing),
                   Text(
-                    score,
-                    style: AppTextStyles.matchCardScore,
+                    date,
+                    style: AppTextStyles.matchCardDate,
                   ),
                 ],
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.matchCardStatusHorizontalPadding,
-                vertical: AppSizes.matchCardStatusVerticalPadding,
+              const SizedBox(width: AppSizes.matchDateIconSpacing),
+              Container(
+                width: AppSizes.matchDateDividerWidth,
+                height: AppSizes.matchDateDividerHeight,
+                color: AppColors.cardBorder,
               ),
-              decoration: BoxDecoration(
-                color: statusBackgroundColor,
-                borderRadius: BorderRadius.circular(
-                  AppSizes.matchCardStatusRadius,
+              const SizedBox(width: AppSizes.matchResultSpacing),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${AppStrings.matchCardVs} $opponentName',
+                      style: AppTextStyles.matchCardOpponent,
+                    ),
+                    const SizedBox(height: AppSizes.matchContentSpacing),
+                    Text(
+                      score,
+                      style: AppTextStyles.matchCardScore,
+                    ),
+                  ],
                 ),
               ),
-              child: Text(
-                statusText,
-                style: AppTextStyles.matchCardStatus.copyWith(
-                  color: statusTextColor,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.matchCardStatusHorizontalPadding,
+                  vertical: AppSizes.matchCardStatusVerticalPadding,
+                ),
+                decoration: BoxDecoration(
+                  color: statusBackgroundColor,
+                  borderRadius: BorderRadius.circular(
+                    AppSizes.matchCardStatusRadius,
+                  ),
+                ),
+                child: Text(
+                  statusText,
+                  style: AppTextStyles.matchCardStatus.copyWith(
+                    color: statusTextColor,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

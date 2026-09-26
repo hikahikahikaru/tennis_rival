@@ -13,6 +13,7 @@ import '../widgets/bottom_nav_bar.dart';
 import '../widgets/pending_match_card.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/recent_match_list.dart';
+import '../widgets/match_detail_sheet.dart';
 import '../widgets/stats_card.dart';
 import 'match_entry_screen.dart';
 
@@ -109,6 +110,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _showMatchDetail(MatchHistoryItem match) {
+    return MatchDetailSheet.show(
+      context,
+      match: match,
+    );
+  }
+
   void _openMatchEntryScreen(BuildContext context) {
     // 記録ボタンと下部ナビの「登録」は同じ遷移先なので、入口を共通化する。
     Navigator.push(
@@ -188,6 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 error: _recentMatchesError,
                 matches: _recentMatches,
                 onRetry: _loadRecentMatches,
+                onMatchTap: _showMatchDetail,
               ),
             ],
           ),
