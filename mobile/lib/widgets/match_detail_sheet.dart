@@ -105,6 +105,8 @@ class _MatchDetailSheetState extends State<MatchDetailSheet> {
               const SizedBox(height: AppSizes.spacingMedium),
               _buildSetCount(match),
               const SizedBox(height: AppSizes.spacingMedium),
+              _buildPersonalMemo(match),
+              const SizedBox(height: AppSizes.spacingMedium),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -241,6 +243,36 @@ class _MatchDetailSheetState extends State<MatchDetailSheet> {
               style: AppTextStyles.matchConfirmResultScore),
         ],
       ),
+    );
+  }
+
+  Widget _buildPersonalMemo(MatchHistoryItem match) {
+    final memo = match.personalMemo;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          AppStrings.matchConfirmMemo,
+          style: AppTextStyles.scoreSectionTitle,
+        ),
+        const SizedBox(height: AppSizes.scoreHeaderSpacing),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSizes.matchCardPadding),
+          decoration: BoxDecoration(
+            color: AppColors.matchUnknownBackground,
+            borderRadius: BorderRadius.circular(
+              AppSizes.selectionFieldRadius,
+            ),
+          ),
+          child: Text(
+            memo ?? AppStrings.matchDetailMemoEmpty,
+            style: memo == null
+                ? AppTextStyles.opponentPickerEmpty
+                : AppTextStyles.matchDetailMemo,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -22,6 +22,7 @@ class MatchHistoryQuery {
   static const int recentMatchLimit = 2;
 
   static const String select = 'match_id,participant_id,'
+      'match_memos!match_memos_match_participant_fkey(user_id,memo),'
       'matches!inner('
       'match_id,'
       'dt_match,'
@@ -69,7 +70,8 @@ class SupabaseMatchHistoryRepository implements MatchHistoryRepository {
   }
 
   Future<List<dynamic>> fetchRows(MatchHistoryQuery query) async {
-    // 閲覧者の参加行で絞り、同じ試合に属する全参加者も埋め込んで対戦相手を得る。
+    // 閲覧者の参加行で絞り、その行に属する本人メモと、対戦相手用の全参加者を同時取得する。
+    // user_idによる絞り込みは認証導入前の表示制御であり、セキュリティ保証ではない。
     final response = await client
         .from(MatchHistoryQuery.table)
         .select(MatchHistoryQuery.select)
