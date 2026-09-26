@@ -201,9 +201,4 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     color: AppColors.primary,
   );
-
-  // MatchMemoField 用のテキストスタイル
-  static const TextStyle matchMemoError = TextStyle(
-    color: AppColors.matchLose,
-  );
 }

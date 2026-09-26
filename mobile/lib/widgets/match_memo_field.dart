@@ -5,19 +5,15 @@ import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 
-/// 個人メモの入力と保存操作だけを提供し、保存処理は親Widgetへ委譲する。
+/// 個人メモの入力UIを提供し、入力値の保持や保存処理は親Widgetへ委譲する。
 class MatchMemoField extends StatefulWidget {
   final String initialValue;
-  final bool isSaving;
-  final String? errorMessage;
-  final ValueChanged<String> onSave;
+  final ValueChanged<String> onChanged;
 
   const MatchMemoField({
     super.key,
     this.initialValue = '',
-    this.isSaving = false,
-    this.errorMessage,
-    required this.onSave,
+    required this.onChanged,
   });
 
   @override
@@ -63,6 +59,7 @@ class _MatchMemoFieldState extends State<MatchMemoField> {
         const SizedBox(height: AppSizes.scoreHeaderSpacing),
         TextField(
           controller: _controller,
+          onChanged: widget.onChanged,
           minLines: AppSizes.matchMemoMinLines,
           maxLines: AppSizes.matchMemoMaxLines,
           textInputAction: TextInputAction.newline,
@@ -82,34 +79,6 @@ class _MatchMemoFieldState extends State<MatchMemoField> {
               horizontal: AppSizes.selectionFieldPadding,
               vertical: AppSizes.selectionFieldPadding,
             ),
-          ),
-        ),
-        if (widget.errorMessage != null && widget.errorMessage!.isNotEmpty) ...[
-          const SizedBox(height: AppSizes.scoreHeaderSpacing),
-          Text(
-            widget.errorMessage!,
-            style: AppTextStyles.matchMemoError,
-          ),
-        ],
-        const SizedBox(height: AppSizes.scoreSectionSpacing),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed:
-                widget.isSaving ? null : () => widget.onSave(_controller.text),
-            child: widget.isSaving
-                ? const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox.square(
-                        dimension: AppSizes.matchMemoProgressSize,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: AppSizes.spacingMedium),
-                      Text(AppStrings.matchMemoSaving),
-                    ],
-                  )
-                : const Text(AppStrings.matchMemoSave),
           ),
         ),
       ],
