@@ -64,16 +64,91 @@ void main() {
 
       expect(item.displayDate, '8月24日');
     });
+
+    test('converts the current user memo returned as a map', () {
+      final item = MatchHistoryItem.fromRow(
+        _row(
+          score1UserId: currentUserId,
+          winnerId: currentUserId,
+          memos: const {
+            'user_id': currentUserId,
+            'memo': ' サーブが安定していた ',
+          },
+        ),
+        currentUserId: currentUserId,
+      );
+
+      expect(item, isNotNull);
+      expect(item!.personalMemo, 'サーブが安定していた');
+    });
+
+    test('treats a null memo response as unregistered', () {
+      final missingMemo = MatchHistoryItem.fromRow(
+        _row(
+          score1UserId: currentUserId,
+          winnerId: currentUserId,
+        ),
+        currentUserId: currentUserId,
+      );
+
+      expect(missingMemo!.personalMemo, isNull);
+    });
+
+    test('treats a blank memo as unregistered', () {
+      final blankMemo = MatchHistoryItem.fromRow(
+        _row(
+          score1UserId: currentUserId,
+          winnerId: currentUserId,
+          memos: const {'user_id': currentUserId, 'memo': '   '},
+        ),
+        currentUserId: currentUserId,
+      );
+
+      expect(blankMemo!.personalMemo, isNull);
+    });
+
+    test('does not use a memo belonging to another user', () {
+      final item = MatchHistoryItem.fromRow(
+        _row(
+          score1UserId: currentUserId,
+          winnerId: currentUserId,
+          memos: const {
+            'user_id': opponentUserId,
+            'memo': '相手のメモ',
+          },
+        ),
+        currentUserId: currentUserId,
+      );
+
+      expect(item!.personalMemo, isNull);
+    });
+
+    test('also accepts a list-shaped memo response', () {
+      final item = MatchHistoryItem.fromRow(
+        _row(
+          score1UserId: currentUserId,
+          winnerId: currentUserId,
+          memos: const [
+            {'user_id': currentUserId, 'memo': 'リスト形式のメモ'},
+          ],
+        ),
+        currentUserId: currentUserId,
+      );
+
+      expect(item!.personalMemo, 'リスト形式のメモ');
+    });
   });
 }
 
 Map<String, dynamic> _row({
   required String? score1UserId,
   required String? winnerId,
+  Object? memos,
 }) {
   return {
     'match_id': 'match-1',
     'participant_id': currentUserId,
+    'match_memos': memos,
     'matches': {
       'match_id': 'match-1',
       'dt_match': '2026-08-24T10:00:00+09:00',

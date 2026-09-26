@@ -50,6 +50,7 @@ class AppStrings {
   static const String matchScoreUnknown = 'スコア不明';
   static const String matchDetailTitle = '試合詳細';
   static const String matchDetailSetCount = 'セットカウント';
+  static const String matchDetailMemoEmpty = 'メモはまだありません';
   static const String matchDetailClose = '閉じる';
   // StatsCard
   static const String statsCardTitle = '今月の戦績';

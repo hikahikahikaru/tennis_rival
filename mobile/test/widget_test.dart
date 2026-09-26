@@ -151,6 +151,19 @@ void main() {
     expect(find.text('LOSE'), findsNothing);
   });
 
+  testWidgets('opens cached match detail without another repository request',
+      (WidgetTester tester) async {
+    final repository = _FakeMatchHistoryRepository.success(_recentMatches);
+    await pumpHome(tester, repository: repository);
+
+    await tester.ensureVisible(find.text('vs 西やん'));
+    await tester.tap(find.text('vs 西やん'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('試合詳細'), findsOneWidget);
+    expect(repository.fetchCallCount, 1);
+  });
+
   testWidgets('opens match entry screen from record button',
       (WidgetTester tester) async {
     await pumpHome(tester);

@@ -38,6 +38,10 @@ void main() {
                   _setScore(
                       setNo: 1, score1: 7, score2: 6, tScore1: 8, tScore2: 6),
                 ],
+                memos: const {
+                  'user_id': takeshiId,
+                  'memo': 'サーブが安定していた',
+                },
               ),
             ]),
             200,
@@ -58,6 +62,12 @@ void main() {
       expect(request.url.path, '/rest/v1/match_participants');
       final query = request.url.queryParameters;
       expect(query['select'], contains('matches!inner('));
+      expect(
+        query['select'],
+        contains(
+          'match_memos!match_memos_match_participant_fkey(user_id,memo)',
+        ),
+      );
       expect(query['select'], contains('score1_user_id'));
       expect(query['select'],
           contains('set_scores(set_no,score1,score2,t_score1,t_score2)'));
@@ -71,6 +81,7 @@ void main() {
       expect(matches.single.opponentName, '西やん');
       expect(matches.single.scoreText, '7-6 (8-6)');
       expect(matches.single.isWin, isTrue);
+      expect(matches.single.personalMemo, 'サーブが安定していた');
       // 結合名の妥当性は実DBのスキーマ適用後に別途確認する。
     });
 
@@ -120,6 +131,7 @@ void main() {
       expect(MatchHistoryQuery.select, contains('score1_user_id'));
       expect(MatchHistoryQuery.select, contains('set_scores'));
       expect(MatchHistoryQuery.select, contains('match_participants'));
+      expect(MatchHistoryQuery.select, contains('match_memos'));
       expect(matches, hasLength(1));
       expect(matches.single.opponentName, '西やん');
     });
@@ -337,10 +349,12 @@ Map<String, dynamic> _matchRow({
   required String? score1UserId,
   required List<Map<String, dynamic>> participants,
   required List<Map<String, dynamic>> sets,
+  Object? memos,
 }) {
   return {
     'match_id': matchId,
     'participant_id': takeshiId,
+    'match_memos': memos,
     'matches': {
       'match_id': matchId,
       'dt_match': dtMatch,

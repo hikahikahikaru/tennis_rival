@@ -201,4 +201,9 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     color: AppColors.primary,
   );
+
+  static const TextStyle matchDetailMemo = TextStyle(
+    fontSize: 14,
+    color: AppColors.matchOpponentText,
+  );
 }
