@@ -9,6 +9,7 @@ import '../mocks/mock_data.dart';
 import '../models/match_history_item.dart';
 import '../models/user_stats.dart';
 import '../services/match_history_service.dart';
+import '../services/match_memo_service.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/pending_match_card.dart';
 import '../widgets/primary_button.dart';
@@ -23,11 +24,13 @@ import 'match_entry_screen.dart';
 /// 戦績の計算はUserStatsに任せる。
 class HomeScreen extends StatefulWidget {
   final MatchHistoryService? matchHistoryService;
+  final MatchMemoService? matchMemoService;
   final String? currentUserId;
 
   const HomeScreen({
     super.key,
     this.matchHistoryService,
+    this.matchMemoService,
     this.currentUserId,
   });
 
@@ -41,6 +44,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late MatchHistoryService _matchHistoryService;
+  late MatchMemoService _matchMemoService;
   late String _currentUserId;
   var _isRecentMatchesLoading = true;
   Object? _recentMatchesError;
@@ -59,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.matchHistoryService != widget.matchHistoryService ||
+        oldWidget.matchMemoService != widget.matchMemoService ||
         oldWidget.currentUserId != widget.currentUserId) {
       _setDependencies();
       _loadRecentMatches();
@@ -68,6 +73,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _setDependencies() {
     _matchHistoryService =
         widget.matchHistoryService ?? MatchHistoryService.instance;
+    _matchMemoService = widget.matchMemoService ??
+        MatchMemoService(matchHistoryService: _matchHistoryService);
     // 認証未実装のため、DB取得時の閲覧者はseed.sqlの仮ユーザーに固定する。
     _currentUserId = widget.currentUserId ?? MockData.currentUserId;
   }
@@ -114,7 +121,38 @@ class _HomeScreenState extends State<HomeScreen> {
     return MatchDetailSheet.show(
       context,
       match: match,
+      onSaveMemo: (memo) => _savePersonalMemo(match, memo),
     );
+  }
+
+  Future<String?> _savePersonalMemo(
+    MatchHistoryItem match,
+    String memo,
+  ) async {
+    final matchId = match.matchId;
+    if (matchId == null) {
+      throw StateError('A match ID is required to save a personal memo.');
+    }
+
+    final savedMemo = await _matchMemoService.savePersonalMemo(
+      matchId: matchId,
+      userId: _currentUserId,
+      memo: memo,
+    );
+    if (!mounted) {
+      return savedMemo;
+    }
+
+    setState(() {
+      _recentMatches = [
+        for (final item in _recentMatches)
+          if (item.matchId == matchId)
+            item.copyWithPersonalMemo(savedMemo)
+          else
+            item,
+      ];
+    });
+    return savedMemo;
   }
 
   void _openMatchEntryScreen(BuildContext context) {

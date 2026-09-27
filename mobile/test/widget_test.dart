@@ -3,17 +3,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/constants/app_theme.dart';
+import 'package:mobile/mocks/mock_data.dart';
 import 'package:mobile/models/match_history_item.dart';
 import 'package:mobile/repositories/match_history_repository.dart';
+import 'package:mobile/repositories/match_memo_repository.dart';
 import 'package:mobile/screens/home_screen.dart';
 import 'package:mobile/screens/match_entry_screen.dart';
 import 'package:mobile/services/match_history_service.dart';
+import 'package:mobile/services/match_memo_service.dart';
 
 void main() {
   Future<void> pumpHome(
     WidgetTester tester, {
     Size? screenSize,
     _FakeMatchHistoryRepository? repository,
+    MatchMemoRepository? memoRepository,
   }) async {
     if (screenSize != null) {
       tester.view.physicalSize = screenSize;
@@ -22,13 +26,18 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
     }
 
+    final historyService = MatchHistoryService(
+      repository:
+          repository ?? _FakeMatchHistoryRepository.success(_recentMatches),
+    );
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
         home: HomeScreen(
-          matchHistoryService: MatchHistoryService(
-            repository: repository ??
-                _FakeMatchHistoryRepository.success(_recentMatches),
+          matchHistoryService: historyService,
+          matchMemoService: MatchMemoService(
+            repository: memoRepository ?? _FakeMatchMemoRepository(),
+            matchHistoryService: historyService,
           ),
         ),
       ),
@@ -164,6 +173,36 @@ void main() {
     expect(repository.fetchCallCount, 1);
   });
 
+  testWidgets('keeps the saved memo when the detail sheet is reopened',
+      (WidgetTester tester) async {
+    final memoRepository = _FakeMatchMemoRepository();
+    await pumpHome(tester, memoRepository: memoRepository);
+    await tester.ensureVisible(find.text('vs 西やん'));
+    final homeScrollState = tester.state<ScrollableState>(
+      find.byType(Scrollable).first,
+    );
+    final scrollOffsetBeforeOpening = homeScrollState.position.pixels;
+    await tester.tap(find.text('vs 西やん'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('個人メモを編集'));
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), 'ホームにも反映するメモ');
+
+    await tester.tap(find.text('保存する'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('試合詳細'), findsNothing);
+    expect(homeScrollState.position.pixels, scrollOffsetBeforeOpening);
+    await tester.tap(find.text('vs 西やん'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ホームにも反映するメモ'), findsOneWidget);
+    expect(
+      memoRepository.memos[('match-1', MockData.currentUserId)],
+      'ホームにも反映するメモ',
+    );
+  });
+
   testWidgets('opens match entry screen from record button',
       (WidgetTester tester) async {
     await pumpHome(tester);
@@ -253,12 +292,14 @@ class _DeferredMatchHistoryRepository implements MatchHistoryRepository {
 
 final List<MatchHistoryItem> _recentMatches = [
   MatchHistoryItem(
+    matchId: 'match-1',
     matchDate: DateTime(2026, 8, 24),
     opponentName: '西やん',
     scoreText: '6-4, 6-3',
     isWin: true,
   ),
   MatchHistoryItem(
+    matchId: 'match-2',
     matchDate: DateTime(2026, 8, 18),
     opponentName: 'ピンちゃん',
     scoreText: '4-6, 7-5, 10-8',
@@ -288,5 +329,26 @@ class _FakeMatchHistoryRepository implements MatchHistoryRepository {
     }
 
     return response as List<MatchHistoryItem>;
+  }
+}
+
+class _FakeMatchMemoRepository implements MatchMemoRepository {
+  final Map<(String, String), String> memos = {};
+
+  @override
+  Future<void> upsertPersonalMemo({
+    required String matchId,
+    required String userId,
+    required String memo,
+  }) async {
+    memos[(matchId, userId)] = memo;
+  }
+
+  @override
+  Future<void> deletePersonalMemo({
+    required String matchId,
+    required String userId,
+  }) async {
+    memos.remove((matchId, userId));
   }
 }

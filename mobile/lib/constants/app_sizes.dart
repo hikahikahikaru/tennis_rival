@@ -86,6 +86,7 @@ class AppSizes {
   // 個人メモ入力用のサイズ
   static const int matchMemoMinLines = 3;
   static const int matchMemoMaxLines = 4;
+  static const double matchMemoProgressSize = 20.0;
 
   // 画面全体の共通サイズ
   static const double screenPadding = 16.0;
