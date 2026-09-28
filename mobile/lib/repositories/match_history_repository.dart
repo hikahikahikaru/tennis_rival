@@ -1,7 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/match_history_item.dart';
-import '../models/match_type.dart';
 import '../models/match_history_query.dart';
 
 abstract class MatchHistoryRepository {
