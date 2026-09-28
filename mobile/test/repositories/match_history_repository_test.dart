@@ -14,6 +14,101 @@ const String outsiderId = '99999999-9999-9999-9999-999999999999';
 
 void main() {
   group('SupabaseMatchHistoryRepository', () {
+    test('fetches a requested month using an exclusive next-month boundary',
+        () async {
+      final requests = <http.Request>[];
+      final client = SupabaseClient(
+        'https://example.test',
+        'test-anon-key',
+        httpClient: MockClient((request) async {
+          requests.add(request);
+          return http.Response(
+            jsonEncode([
+              _matchRow(
+                matchId: 'august-match',
+                dtMatch: '2026-08-24T10:00:00Z',
+                winner: takeshiId,
+                score1UserId: takeshiId,
+                participants: [
+                  _participant(takeshiId, 'たけし'),
+                  _participant(nishiyanId, '西やん'),
+                ],
+                sets: [
+                  _setScore(setNo: 1, score1: 6, score2: 4),
+                ],
+              ),
+            ]),
+            200,
+            headers: {'content-type': 'application/json'},
+            request: request,
+          );
+        }),
+      );
+      addTearDown(client.dispose);
+
+      final query = MatchHistoryQuery.forMonth(
+        currentUserId: takeshiId,
+        year: 2026,
+        month: 8,
+        matchTypes: const {MatchType.singles},
+      );
+      final matches = await SupabaseMatchHistoryRepository(client: client)
+          .fetchMatches(query);
+
+      final request = requests.single;
+      final parameters = request.url.queryParameters;
+      expect(request.url.path, '/rest/v1/match_participants');
+      expect(parameters['participant_id'], 'eq.$takeshiId');
+      expect(
+          parameters['matches.match_type'], 'eq.${MatchType.singles.dbValue}');
+      expect(
+        request.url.queryParametersAll['matches.dt_match'],
+        [
+          'gte.${DateTime(2026, 8).toUtc().toIso8601String()}',
+          'lt.${DateTime(2026, 9).toUtc().toIso8601String()}',
+        ],
+      );
+      expect(parameters['order'], 'matches(dt_match).desc.nullslast');
+      expect(parameters.containsKey('limit'), isFalse);
+      expect(matches, hasLength(1));
+      expect(matches.single.matchDate, DateTime.parse('2026-08-24T10:00:00Z'));
+      expect(matches.single.opponentName, '西やん');
+      expect(matches.single.isWin, isTrue);
+      expect(matches.single.scoreText, '6-4');
+    });
+
+    test(
+        'supports multiple match types, unrestricted dates, and optional limit',
+        () async {
+      final requests = <http.Request>[];
+      final client = SupabaseClient(
+        'https://example.test',
+        'test-anon-key',
+        httpClient: MockClient((request) async {
+          requests.add(request);
+          return http.Response('[]', 200,
+              headers: {'content-type': 'application/json'}, request: request);
+        }),
+      );
+      addTearDown(client.dispose);
+
+      await SupabaseMatchHistoryRepository(client: client).fetchMatches(
+        MatchHistoryQuery(
+          currentUserId: takeshiId,
+          matchTypes: const {MatchType.singles, MatchType.doubles},
+          limit: 10,
+          ascending: true,
+        ),
+      );
+
+      final parameters = requests.single.url.queryParameters;
+      expect(parameters['participant_id'], 'eq.$takeshiId');
+      expect(parameters['matches.match_type'], 'in.(1,2)');
+      expect(parameters.containsKey('matches.dt_match'), isFalse);
+      expect(parameters['order'], 'matches(dt_match).asc.nullslast');
+      expect(parameters['limit'], '10');
+    });
+
     test('sends filtered single request and converts its HTTP response',
         () async {
       final requests = <http.Request>[];

@@ -1,5 +1,6 @@
 import '../mocks/mock_data.dart';
 import '../models/match_history_item.dart';
+import '../models/match_type.dart';
 import '../repositories/match_history_repository.dart';
 
 /// 最近の試合について、ユーザー別キャッシュと進行中の取得処理を管理する。
@@ -12,6 +13,8 @@ class MatchHistoryService {
   final MatchHistoryRepository _repository;
   final Map<String, List<MatchHistoryItem>> _cache = {};
   final Map<String, Future<List<MatchHistoryItem>>> _inFlightRequests = {};
+  final Map<String, List<MatchHistoryItem>> _monthCache = {};
+  final Map<String, Future<List<MatchHistoryItem>>> _inFlightMonthRequests = {};
   int _cacheGeneration = 0;
 
   MatchHistoryService({MatchHistoryRepository? repository})
@@ -49,6 +52,93 @@ class MatchHistoryService {
     return request;
   }
 
+  /// 画面指定の検索条件で履歴を取得する。月や期間ごとの結果を混在させないよう、
+  /// 任意条件の取得はホーム用キャッシュを介さずRepositoryへ委譲する。
+  Future<List<MatchHistoryItem>> loadMatches(MatchHistoryQuery query) {
+    return _repository.fetchMatches(query);
+  }
+
+  List<MatchHistoryItem> cachedMatchesByMonth({
+    String? currentUserId,
+    required int year,
+    required int month,
+    Set<MatchType> matchTypes = const {MatchType.singles},
+  }) {
+    final targetUserId = currentUserId ?? MockData.currentUserId;
+    return _monthCache[_monthCacheKey(
+          targetUserId,
+          year,
+          month,
+          matchTypes,
+        )] ??
+        const [];
+  }
+
+  Future<List<MatchHistoryItem>> loadMatchesByMonth({
+    String? currentUserId,
+    required int year,
+    required int month,
+    Set<MatchType> matchTypes = const {MatchType.singles},
+    bool forceRefresh = false,
+  }) {
+    final targetUserId = currentUserId ?? MockData.currentUserId;
+    final cacheKey = _monthCacheKey(
+      targetUserId,
+      year,
+      month,
+      matchTypes,
+    );
+    final cachedMatches = _monthCache[cacheKey];
+    if (cachedMatches != null && !forceRefresh) {
+      return Future.value(cachedMatches);
+    }
+
+    final inFlightRequest = _inFlightMonthRequests[cacheKey];
+    if (inFlightRequest != null) {
+      return inFlightRequest;
+    }
+
+    final query = MatchHistoryQuery.forMonth(
+      currentUserId: targetUserId,
+      year: year,
+      month: month,
+      matchTypes: matchTypes,
+    );
+    final requestGeneration = _cacheGeneration;
+    late final Future<List<MatchHistoryItem>> request;
+    request = _fetchAndCacheMonth(cacheKey, query, requestGeneration)
+        .whenComplete(() {
+      if (identical(_inFlightMonthRequests[cacheKey], request)) {
+        _inFlightMonthRequests.remove(cacheKey);
+      }
+    });
+    _inFlightMonthRequests[cacheKey] = request;
+    return request;
+  }
+
+  Future<List<MatchHistoryItem>> _fetchAndCacheMonth(
+    String cacheKey,
+    MatchHistoryQuery query,
+    int requestGeneration,
+  ) async {
+    final matches = await _repository.fetchMatches(query);
+    // メモ更新やキャッシュ破棄より前に開始した取得結果を再保存しない。
+    if (requestGeneration == _cacheGeneration) {
+      _monthCache[cacheKey] = matches;
+    }
+    return matches;
+  }
+
+  String _monthCacheKey(
+    String userId,
+    int year,
+    int month,
+    Set<MatchType> matchTypes,
+  ) {
+    final typeKey = matchTypes.map((type) => type.dbValue).toList()..sort();
+    return '$userId:$year-${month.toString().padLeft(2, '0')}:${typeKey.join(',')}';
+  }
+
   Future<List<MatchHistoryItem>> _fetchAndCache(
     String userId,
     int requestGeneration,
@@ -69,17 +159,26 @@ class MatchHistoryService {
     // 保存前に始まった取得結果を、更新済みメモのキャッシュへ反映させない。
     _cacheGeneration++;
     final matches = _cache[currentUserId];
-    if (matches == null) {
-      return;
+    if (matches != null) {
+      _cache[currentUserId] = [
+        for (final match in matches)
+          if (match.matchId == matchId)
+            match.copyWithPersonalMemo(personalMemo)
+          else
+            match,
+      ];
     }
 
-    _cache[currentUserId] = [
-      for (final match in matches)
-        if (match.matchId == matchId)
-          match.copyWithPersonalMemo(personalMemo)
-        else
-          match,
-    ];
+    for (final entry in _monthCache.entries) {
+      if (!entry.key.startsWith('$currentUserId:')) continue;
+      _monthCache[entry.key] = [
+        for (final match in entry.value)
+          if (match.matchId == matchId)
+            match.copyWithPersonalMemo(personalMemo)
+          else
+            match,
+      ];
+    }
   }
 
   void clearCache() {
@@ -87,5 +186,7 @@ class MatchHistoryService {
     _cacheGeneration++;
     _cache.clear();
     _inFlightRequests.clear();
+    _monthCache.clear();
+    _inFlightMonthRequests.clear();
   }
 }

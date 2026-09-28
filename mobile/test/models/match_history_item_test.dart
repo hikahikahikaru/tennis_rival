@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/models/match_history_item.dart';
+import 'package:mobile/models/match_type.dart';
 
 const currentUserId = '11111111-1111-1111-1111-111111111111';
 const opponentUserId = '22222222-2222-2222-2222-222222222222';
@@ -19,6 +20,36 @@ void main() {
       expect(item!.opponentName, '西やん');
       expect(item.scoreText, '6-7 (6-8)');
       expect(item.isWin, isTrue);
+    });
+
+    test('converts doubles rows and includes opponent team names', () {
+      final row = _row(
+        score1UserId: currentUserId,
+        winnerId: currentUserId,
+        matchType: MatchType.doubles.dbValue,
+      );
+      final match = row['matches'] as Map<String, dynamic>;
+      final participants = match['match_participants'] as List<dynamic>;
+      match['match_participants'] = [
+        participants.first,
+        {
+          'participant_id': '33333333-3333-3333-3333-333333333333',
+          'users': {'user_name': '相手ペア'},
+        },
+        {
+          'participant_id': '44444444-4444-4444-4444-444444444444',
+          'users': {'user_name': '相手ペア2'},
+        },
+      ];
+
+      final item = MatchHistoryItem.fromRow(
+        row,
+        currentUserId: currentUserId,
+      );
+
+      expect(item, isNotNull);
+      expect(item!.matchType, MatchType.doubles);
+      expect(item.opponentName, '相手ペア, 相手ペア2');
     });
 
     test('does not infer score side or winner from inconsistent data', () {
@@ -144,6 +175,7 @@ Map<String, dynamic> _row({
   required String? score1UserId,
   required String? winnerId,
   Object? memos,
+  int matchType = 1,
 }) {
   return {
     'match_id': 'match-1',
@@ -152,7 +184,7 @@ Map<String, dynamic> _row({
     'matches': {
       'match_id': 'match-1',
       'dt_match': '2026-08-24T10:00:00+09:00',
-      'match_type': 1,
+      'match_type': matchType,
       'winner': winnerId,
       'score1_user_id': score1UserId,
       'match_participants': [

@@ -11,6 +11,7 @@ class MatchHistoryItem {
   final String opponentName;
   final String scoreText;
   final bool? isWin;
+  final MatchType matchType;
   final MatchFormat matchFormat;
   final List<MatchSetScore> setScores;
   final String? personalMemo;
@@ -22,6 +23,7 @@ class MatchHistoryItem {
     required this.opponentName,
     required this.scoreText,
     required this.isWin,
+    this.matchType = MatchType.singles,
     this.matchFormat = MatchFormat.oneSet,
     this.setScores = const [],
     this.personalMemo,
@@ -51,6 +53,7 @@ class MatchHistoryItem {
       opponentName: opponentName,
       scoreText: scoreText,
       isWin: isWin,
+      matchType: matchType,
       matchFormat: matchFormat,
       setScores: setScores,
       personalMemo: value,
@@ -64,10 +67,11 @@ class MatchHistoryItem {
   }) {
     final rowMap = _asMap(row);
     final matchMap = _asMap(rowMap?['matches']);
-    if (matchMap == null ||
-        _asInt(matchMap['match_type']) != MatchType.singles.dbValue) {
+    if (matchMap == null) {
       return null;
     }
+    final matchType = _matchTypeFromDb(matchMap['match_type']);
+    if (matchType == null) return null;
 
     final participantRows = _asList(matchMap['match_participants']);
     final participantIds = participantRows
@@ -97,6 +101,7 @@ class MatchHistoryItem {
         participantIds: participantIds,
         currentUserId: currentUserId,
       ),
+      matchType: matchType,
       matchFormat: _formatFromSetCount(matchMap['total_set_amount']),
       setScores: _buildSetScores(
         matchMap: matchMap,
@@ -157,6 +162,7 @@ class MatchHistoryItem {
     List<dynamic> participantRows,
     String currentUserId,
   ) {
+    final opponentNames = <String>[];
     for (final participantRow in participantRows) {
       final participant = _asMap(participantRow);
       if (participant == null ||
@@ -166,10 +172,12 @@ class MatchHistoryItem {
 
       final userName = _asMap(participant['users'])?['user_name'] as String?;
       if (userName != null && userName.isNotEmpty) {
-        return userName;
+        opponentNames.add(userName);
       }
     }
-    return AppStrings.matchOpponentUnknown;
+    return opponentNames.isEmpty
+        ? AppStrings.matchOpponentUnknown
+        : opponentNames.join(', ');
   }
 
   static List<MatchSetScore> _buildSetScores({
@@ -224,6 +232,15 @@ class MatchHistoryItem {
     return value != null && _asInt(value) == MatchFormat.threeSets.setCount
         ? MatchFormat.threeSets
         : MatchFormat.oneSet;
+  }
+
+  static MatchType? _matchTypeFromDb(Object? value) {
+    if (value == null) return null;
+    final dbValue = _asInt(value);
+    for (final matchType in MatchType.values) {
+      if (matchType.dbValue == dbValue) return matchType;
+    }
+    return null;
   }
 
   static bool? _resolveResult({
