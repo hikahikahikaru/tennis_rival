@@ -1,5 +1,6 @@
 import '../mocks/mock_data.dart';
 import '../models/match_history_item.dart';
+import '../models/match_history_query.dart';
 import '../models/match_type.dart';
 import '../repositories/match_history_repository.dart';
 
