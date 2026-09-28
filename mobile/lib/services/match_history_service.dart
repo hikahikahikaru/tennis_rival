@@ -61,6 +61,27 @@ class MatchHistoryService {
     return matches;
   }
 
+  void updatePersonalMemo({
+    required String currentUserId,
+    required String matchId,
+    required String? personalMemo,
+  }) {
+    // 保存前に始まった取得結果を、更新済みメモのキャッシュへ反映させない。
+    _cacheGeneration++;
+    final matches = _cache[currentUserId];
+    if (matches == null) {
+      return;
+    }
+
+    _cache[currentUserId] = [
+      for (final match in matches)
+        if (match.matchId == matchId)
+          match.copyWithPersonalMemo(personalMemo)
+        else
+          match,
+    ];
+  }
+
   void clearCache() {
     // 進行中の通信は止めず、完了時に古い結果をキャッシュしないよう世代を更新する。
     _cacheGeneration++;

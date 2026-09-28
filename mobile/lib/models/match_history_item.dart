@@ -43,6 +43,20 @@ class MatchHistoryItem {
   int get opponentWonSetCount =>
       setScores.where((score) => score.opponentScore > score.myScore).length;
 
+  MatchHistoryItem copyWithPersonalMemo(String? value) {
+    return MatchHistoryItem(
+      matchId: matchId,
+      matchDate: matchDate,
+      currentUserName: currentUserName,
+      opponentName: opponentName,
+      scoreText: scoreText,
+      isWin: isWin,
+      matchFormat: matchFormat,
+      setScores: setScores,
+      personalMemo: value,
+    );
+  }
+
   /// DB行を閲覧者視点の表示データへ変換する。
   static MatchHistoryItem? fromRow(
     Object? row, {

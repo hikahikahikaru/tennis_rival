@@ -122,6 +122,38 @@ void main() {
 
       expect(service.cachedRecentMatches(currentUserId: userA), [freshMatch]);
     });
+
+    test('memo update is not overwritten by an older in-flight response',
+        () async {
+      final initialResponse = Completer<List<MatchHistoryItem>>()
+        ..complete([_matchFor(userA, '西やん', personalMemo: '更新前')]);
+      final staleResponse = Completer<List<MatchHistoryItem>>();
+      final repository = _FakeMatchHistoryRepository(responses: {
+        userA: [initialResponse, staleResponse],
+      });
+      final service = MatchHistoryService(repository: repository);
+
+      await service.loadRecentMatches(currentUserId: userA);
+      final staleRequest = service.loadRecentMatches(
+        currentUserId: userA,
+        forceRefresh: true,
+      );
+      service.updatePersonalMemo(
+        currentUserId: userA,
+        matchId: 'match-id',
+        personalMemo: '更新後',
+      );
+
+      staleResponse.complete([
+        _matchFor(userA, '西やん', personalMemo: '更新前'),
+      ]);
+      await staleRequest;
+
+      expect(
+        service.cachedRecentMatches(currentUserId: userA).single.personalMemo,
+        '更新後',
+      );
+    });
   });
 }
 
@@ -155,11 +187,17 @@ List<MatchHistoryItem> _matchesFor(String userId) {
   ];
 }
 
-MatchHistoryItem _matchFor(String userId, String opponentName) {
+MatchHistoryItem _matchFor(
+  String userId,
+  String opponentName, {
+  String? personalMemo,
+}) {
   return MatchHistoryItem(
+    matchId: 'match-id',
     matchDate: DateTime(2026, 8, 24),
     opponentName: opponentName,
     scoreText: '6-4, 6-3',
     isWin: true,
+    personalMemo: personalMemo,
   );
 }

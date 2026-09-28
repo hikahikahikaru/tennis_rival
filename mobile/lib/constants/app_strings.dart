@@ -51,6 +51,11 @@ class AppStrings {
   static const String matchDetailTitle = '試合詳細';
   static const String matchDetailSetCount = 'セットカウント';
   static const String matchDetailMemoEmpty = 'メモはまだありません';
+  static const String matchDetailMemoEditTooltip = '個人メモを編集';
+  static const String matchDetailMemoCancel = 'キャンセル';
+  static const String matchDetailMemoSave = '保存する';
+  static const String matchDetailMemoSaving = '保存中...';
+  static const String matchDetailMemoSaveFailed = 'メモの保存に失敗しました。もう一度お試しください';
   static const String matchDetailClose = '閉じる';
   // StatsCard
   static const String statsCardTitle = '今月の戦績';
