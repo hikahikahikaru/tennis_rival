@@ -24,6 +24,7 @@ Future<void> main() async {
   // 後でユーザーが対戦相手選択を開いた際に即時表示できるようにキャッシュします。
   unawaited(_preloadOpponents());
   unawaited(_preloadMatchHistory());
+  unawaited(_preloadCurrentMonthMatches());
 
   runApp(const MyApp());
 }
@@ -32,6 +33,19 @@ Future<void> main() async {
 Future<void> _preloadMatchHistory() async {
   try {
     await MatchHistoryService.instance.loadRecentMatches();
+  } catch (e) {
+    debugPrint(AppStrings.errorMatchHistoryFetch(e));
+  }
+}
+
+// 起動月の試合一覧をキャッシュし、戦績画面の初回表示で再利用する。
+Future<void> _preloadCurrentMonthMatches() async {
+  final now = DateTime.now();
+  try {
+    await MatchHistoryService.instance.loadMatchesByMonth(
+      year: now.year,
+      month: now.month,
+    );
   } catch (e) {
     debugPrint(AppStrings.errorMatchHistoryFetch(e));
   }

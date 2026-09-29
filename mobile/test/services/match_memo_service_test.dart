@@ -147,6 +147,11 @@ class _FakeMatchHistoryRepository implements MatchHistoryRepository {
       ),
     ]);
   }
+
+  @override
+  Future<List<MatchHistoryItem>> fetchMatches(MatchHistoryQuery query) {
+    return fetchRecentMatches(query.currentUserId);
+  }
 }
 
 class _FakeMatchMemoRepository implements MatchMemoRepository {

@@ -288,6 +288,11 @@ class _DeferredMatchHistoryRepository implements MatchHistoryRepository {
   Future<List<MatchHistoryItem>> fetchRecentMatches(String currentUserId) {
     return responses[currentUserId]!.future;
   }
+
+  @override
+  Future<List<MatchHistoryItem>> fetchMatches(MatchHistoryQuery query) {
+    return responses[query.currentUserId]!.future;
+  }
 }
 
 final List<MatchHistoryItem> _recentMatches = [
@@ -329,6 +334,11 @@ class _FakeMatchHistoryRepository implements MatchHistoryRepository {
     }
 
     return response as List<MatchHistoryItem>;
+  }
+
+  @override
+  Future<List<MatchHistoryItem>> fetchMatches(MatchHistoryQuery query) {
+    return fetchRecentMatches(query.currentUserId);
   }
 }
 

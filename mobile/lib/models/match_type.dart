@@ -1,6 +1,7 @@
 /// DBに保存する試合種別。
 enum MatchType {
-  singles(1);
+  singles(1),
+  doubles(2);
 
   final int dbValue;
 
