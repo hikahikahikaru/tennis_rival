@@ -98,6 +98,19 @@ void main() {
     expect(find.text('メモはまだありません'), findsOneWidget);
   });
 
+  testWidgets('shows no bottom close button and closes from the top icon',
+      (tester) async {
+    await showDetail(tester, _matchWithMemo('保存済みメモ'));
+
+    expect(find.text('閉じる'), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MatchDetailSheet), findsNothing);
+    expect(find.text('詳細を開く'), findsOneWidget);
+  });
+
   testWidgets('enters memo editing from the pencil icon', (tester) async {
     await showDetail(tester, _matchWithMemo('保存済みメモ'));
 
@@ -108,6 +121,8 @@ void main() {
     expect(find.text('保存済みメモ'), findsOneWidget);
     expect(find.text('キャンセル'), findsOneWidget);
     expect(find.text('保存する'), findsOneWidget);
+    expect(find.text('閉じる'), findsNothing);
+    expect(find.byIcon(Icons.close), findsOneWidget);
     expect(find.byTooltip('個人メモを編集'), findsNothing);
   });
 
@@ -194,8 +209,12 @@ void main() {
     final cancelButton = tester.widget<OutlinedButton>(
       find.widgetWithText(OutlinedButton, 'キャンセル'),
     );
+    final closeButton = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.close),
+    );
     expect(saveButton.onPressed, isNull);
     expect(cancelButton.onPressed, isNull);
+    expect(closeButton.onPressed, isNull);
     expect(saveCount, 1);
     expect(find.byType(MatchDetailSheet), findsOneWidget);
 
