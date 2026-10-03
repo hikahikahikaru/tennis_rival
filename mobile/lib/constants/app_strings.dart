@@ -27,6 +27,9 @@ class AppStrings {
     '土',
     '日',
   ];
+  static const String matchCalendarPreviousMonth = '前月';
+  static const String matchCalendarNextMonth = '翌月';
+  static String matchCalendarMonth(int year, int month) => '$year年$month月';
 
   // 試合登録画面で使用
   static const String matchInfo = '試合情報';

@@ -206,4 +206,23 @@ class AppTextStyles {
     fontSize: 14,
     color: AppColors.matchOpponentText,
   );
+
+  // MatchCalendar用のテキストスタイル
+  static const TextStyle matchCalendarMonth = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle matchCalendarWeekday = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle matchCalendarDay = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: AppColors.matchOpponentText,
+  );
 }

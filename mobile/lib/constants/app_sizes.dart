@@ -88,6 +88,13 @@ class AppSizes {
   static const int matchMemoMaxLines = 4;
   static const double matchMemoProgressSize = 20.0;
 
+  // MatchCalendarで使用するサイズ
+  static const double matchCalendarPadding = 16.0;
+  static const double matchCalendarDayHeight = 48.0;
+  static const double matchCalendarSelectedDaySize = 32.0;
+  static const double matchCalendarDotSize = 5.0;
+  static const double matchCalendarNavigationIconSize = 24.0;
+
   // 画面全体の共通サイズ
   static const double screenPadding = 16.0;
 
