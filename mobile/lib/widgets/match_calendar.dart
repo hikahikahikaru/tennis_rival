@@ -99,7 +99,9 @@ class MatchCalendar extends StatelessWidget {
 
     return Semantics(
       button: true,
+      selected: isSelected,
       label: '${date.year}年${date.month}月${date.day}日',
+      value: hasMatch ? AppStrings.matchDate : null,
       child: InkResponse(
         key: ValueKey('match-calendar-day-$day'),
         onTap: () => onDateSelected(date),
@@ -151,8 +153,10 @@ class MatchCalendar extends StatelessWidget {
     );
   }
 
-  static int _dateKey(DateTime date) =>
-      date.year * 10000 + date.month * 100 + date.day;
+  static int _dateKey(DateTime date) {
+    final localDate = date.toLocal();
+    return localDate.year * 10000 + localDate.month * 100 + localDate.day;
+  }
 }
 
 class _MonthHeader extends StatelessWidget {

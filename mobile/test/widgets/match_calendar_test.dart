@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsFlag;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/constants/app_theme.dart';
@@ -77,6 +79,65 @@ void main() {
     expect(find.byKey(const ValueKey('match-calendar-dot-24')), findsOneWidget);
     expect(
       find.byKey(const ValueKey('match-calendar-selected-16')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('exposes selected and match-date states through semantics',
+      (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpCalendar(
+      tester,
+      matchDates: [DateTime(2026, 8, 16)],
+      selectedDate: DateTime(2026, 8, 16),
+    );
+
+    final selectedMatchDay = tester
+        .getSemantics(
+          find
+              .ancestor(
+                of: find.byKey(const ValueKey('match-calendar-day-16')),
+                matching: find.byType(Semantics),
+              )
+              .first,
+        )
+        .getSemanticsData();
+    final normalDay = tester
+        .getSemantics(
+          find
+              .ancestor(
+                of: find.byKey(const ValueKey('match-calendar-day-17')),
+                matching: find.byType(Semantics),
+              )
+              .first,
+        )
+        .getSemanticsData();
+
+    expect(selectedMatchDay.label, contains('2026年8月16日'));
+    expect(selectedMatchDay.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(selectedMatchDay.value, '試合日');
+    expect(normalDay.hasFlag(SemanticsFlag.isSelected), isFalse);
+    expect(normalDay.value, isEmpty);
+    semantics.dispose();
+  });
+
+  testWidgets('compares UTC match and selected dates using their local date',
+      (tester) async {
+    final utcDate = DateTime.utc(2026, 8, 24, 12);
+    final localDate = utcDate.toLocal();
+    await pumpCalendar(
+      tester,
+      displayedMonth: DateTime(localDate.year, localDate.month),
+      matchDates: [utcDate],
+      selectedDate: utcDate,
+    );
+
+    expect(
+      find.byKey(ValueKey('match-calendar-dot-${localDate.day}')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(ValueKey('match-calendar-selected-${localDate.day}')),
       findsOneWidget,
     );
   });
