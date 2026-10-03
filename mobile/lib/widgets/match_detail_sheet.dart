@@ -189,14 +189,6 @@ class _MatchDetailSheetState extends State<MatchDetailSheet> {
                 _buildSetCount(match),
                 const SizedBox(height: AppSizes.spacingMedium),
                 _buildPersonalMemo(),
-                const SizedBox(height: AppSizes.spacingMedium),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(AppStrings.matchDetailClose),
-                  ),
-                ),
               ],
             ),
           ),
