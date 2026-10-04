@@ -19,6 +19,9 @@ class AppColors {
   static const Color matchUnknown = Color(0xFF53615E); // 判定不能の文字色
   static const Color matchUnknownBackground = Color(0xFFEFF3F1); // 判定不能の背景色
 
+  // MatchCalendarで使用する色
+  static const Color calendarSaturday = Color(0xFF1565C0);
+
   static const Color pendingMatchBackground = Color(0xFFFFF8E1);
   static const Color pendingMatchBorder = Color(0xFFFFECB3);
   static const Color pendingMatchHighlightBackground = Color(0xFFFFF3BF);
