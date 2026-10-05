@@ -17,6 +17,7 @@ import '../widgets/recent_match_list.dart';
 import '../widgets/match_detail_sheet.dart';
 import '../widgets/stats_card.dart';
 import 'match_entry_screen.dart';
+import 'match_history_screen.dart';
 
 /// 既存部品の配置と画面遷移・操作の接続を担当するホーム画面。
 ///
@@ -165,6 +166,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openMatchHistoryScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MatchHistoryScreen(),
+      ),
+    );
+  }
+
   void _showTemporaryMessage(BuildContext context, String message) {
     // 通知・確認待ち・未実装タブは遷移先ができるまでSnackBarで仮案内する。
     final messenger = ScaffoldMessenger.of(context);
@@ -183,6 +193,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (selectedItem.label == AppStrings.navEntry) {
       _openMatchEntryScreen(context);
+      return;
+    }
+
+    if (selectedItem.label == AppStrings.navStats) {
+      _openMatchHistoryScreen(context);
       return;
     }
 

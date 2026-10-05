@@ -5,10 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/constants/app_theme.dart';
 import 'package:mobile/mocks/mock_data.dart';
 import 'package:mobile/models/match_history_item.dart';
+import 'package:mobile/models/match_history_query.dart';
 import 'package:mobile/repositories/match_history_repository.dart';
 import 'package:mobile/repositories/match_memo_repository.dart';
 import 'package:mobile/screens/home_screen.dart';
 import 'package:mobile/screens/match_entry_screen.dart';
+import 'package:mobile/screens/match_history_screen.dart';
 import 'package:mobile/services/match_history_service.dart';
 import 'package:mobile/services/match_memo_service.dart';
 
@@ -223,6 +225,42 @@ void main() {
     expect(find.byType(MatchEntryScreen), findsOneWidget);
   });
 
+  testWidgets('switches from home to stats and back with selected tab updates',
+      (WidgetTester tester) async {
+    await pumpHome(tester);
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(
+      tester
+          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
+          .currentIndex,
+      0,
+    );
+
+    await tester.tap(find.text('戦績'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MatchHistoryScreen), findsOneWidget);
+    expect(
+      tester
+          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
+          .currentIndex,
+      1,
+    );
+
+    await tester.tap(find.text('ホーム'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.byType(MatchHistoryScreen), findsNothing);
+    expect(
+      tester
+          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
+          .currentIndex,
+      0,
+    );
+  });
+
   testWidgets('shows SnackBar guidance for unimplemented home actions',
       (WidgetTester tester) async {
     await pumpHome(tester);
@@ -236,7 +274,7 @@ void main() {
     await tester.pump();
     expect(find.text('確認待ち画面は未実装です'), findsOneWidget);
 
-    await tester.tap(find.text('戦績'));
+    await tester.tap(find.text('グループ'));
     await tester.pump();
     expect(find.text('この機能は未実装です'), findsOneWidget);
   });
