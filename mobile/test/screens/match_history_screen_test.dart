@@ -30,7 +30,7 @@ void main() {
       (tester) async {
     await pumpScreen(tester);
 
-    expect(find.text('戦績'), findsOneWidget);
+    expect(find.text('戦績'), findsNWidgets(2));
     expect(find.byType(StatsCard), findsOneWidget);
     expect(find.byType(MatchCalendar), findsOneWidget);
     expect(find.text('月間戦績'), findsOneWidget);

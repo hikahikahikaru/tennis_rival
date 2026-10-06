@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_nav_items.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 import '../models/user_stats.dart';
+import '../widgets/bottom_nav_bar.dart';
 import '../widgets/match_calendar.dart';
 import '../widgets/match_card.dart';
 import '../widgets/stats_card.dart';
+import 'match_entry_screen.dart';
 
 /// 共通部品を配置し、表示月と選択日のUI状態だけを管理する戦績画面。
 class MatchHistoryScreen extends StatefulWidget {
@@ -65,6 +68,41 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
     setState(() => _selectedDate = date);
   }
 
+  int get _statsNavIndex {
+    return appNavItems.indexWhere((item) => item.label == AppStrings.navStats);
+  }
+
+  void _openMatchEntryScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MatchEntryScreen(),
+      ),
+    );
+  }
+
+  void _handleBottomNavTap(int index) {
+    final selectedItem = appNavItems[index];
+
+    if (selectedItem.label == AppStrings.navStats) {
+      return;
+    }
+
+    if (selectedItem.label == AppStrings.navHome) {
+      Navigator.pop(context);
+      return;
+    }
+
+    if (selectedItem.label == AppStrings.navEntry) {
+      _openMatchEntryScreen();
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text(AppStrings.homeNavUnavailable)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,6 +143,10 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: _statsNavIndex,
+        onTap: _handleBottomNavTap,
       ),
     );
   }
