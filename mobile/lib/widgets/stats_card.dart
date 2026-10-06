@@ -9,10 +9,12 @@ import '../models/user_stats.dart';
 /// 今月の勝敗と勝率を表示する読み取り専用のサマリーカード。
 class StatsCard extends StatelessWidget {
   final UserStats stats;
+  final String title;
 
   const StatsCard({
     super.key,
     required this.stats,
+    this.title = AppStrings.statsCardTitle,
   });
 
   @override
@@ -59,8 +61,8 @@ class StatsCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
-          AppStrings.statsCardTitle,
+        Text(
+          title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppTextStyles.statsCardTitle,

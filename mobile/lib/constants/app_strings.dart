@@ -18,6 +18,8 @@ class AppStrings {
   static const String homeRecentMatchesLoading = '試合履歴を読み込み中です';
   static const String homeRecentMatchesEmpty = '最近の試合はまだありません';
   static const String homeRecentMatchesFetchFailed = '試合履歴の取得に失敗しました';
+  static const String matchHistoryStatsTitle = '月間戦績';
+  static const String matchHistoryMatchListTitle = '試合一覧';
   static const List<String> weekdaysJapanese = [
     '月',
     '火',
