@@ -4,6 +4,7 @@ import 'package:mobile/constants/app_theme.dart';
 import 'package:mobile/screens/match_history_screen.dart';
 import 'package:mobile/widgets/match_calendar.dart';
 import 'package:mobile/widgets/match_card.dart';
+import 'package:mobile/widgets/match_detail_sheet.dart';
 import 'package:mobile/widgets/stats_card.dart';
 
 void main() {
@@ -70,6 +71,65 @@ void main() {
     );
     expect(find.byType(MatchCard), findsNWidgets(2));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('opens the detail sheet for the tapped match', (tester) async {
+    await pumpScreen(tester, screenSize: const Size(800, 1600));
+
+    await tester.tap(find.text('vs ピンちゃん'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MatchDetailSheet), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(MatchDetailSheet),
+        matching: find.text('ピンちゃん'),
+      ),
+      findsWidgets,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(MatchDetailSheet),
+        matching: find.text('西やん'),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('keeps month and selected date after closing the detail',
+      (tester) async {
+    await pumpScreen(tester, screenSize: const Size(800, 1600));
+
+    await tester.tap(find.byKey(const ValueKey('match-calendar-day-24')));
+    await tester.pump();
+    await tester.tap(find.text('vs 西やん'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MatchDetailSheet), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MatchDetailSheet), findsNothing);
+    expect(find.text('2026年8月'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('match-calendar-selected-24')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('does not stack detail sheets on repeated taps', (tester) async {
+    await pumpScreen(tester, screenSize: const Size(800, 1600));
+
+    final card = find.text('vs 西やん');
+    await tester.tap(card);
+    await tester.tap(card, warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MatchDetailSheet), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    expect(find.byType(MatchDetailSheet), findsNothing);
   });
 
   testWidgets('scrolls without overflow on a small smartphone', (tester) async {
