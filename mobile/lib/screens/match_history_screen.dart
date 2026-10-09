@@ -4,10 +4,14 @@ import '../constants/app_nav_items.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
+import '../models/match_format.dart';
+import '../models/match_history_item.dart';
+import '../models/match_set_score.dart';
 import '../models/user_stats.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/match_calendar.dart';
 import '../widgets/match_card.dart';
+import '../widgets/match_detail_sheet.dart';
 import '../widgets/stats_card.dart';
 import 'match_entry_screen.dart';
 
@@ -22,18 +26,32 @@ class MatchHistoryScreen extends StatefulWidget {
 
   // DB・月次集計との接続前に画面構成を確認するための仮データ。
   static const UserStats _sampleStats = UserStats(wins: 2, losses: 2);
-  static const List<_SampleMatch> _sampleMatches = [
-    _SampleMatch(
-      date: '8月24日',
+
+  static final List<MatchHistoryItem> _sampleMatches = [
+    MatchHistoryItem(
+      matchDate: DateTime(2026, 8, 24),
       opponentName: '西やん',
-      score: '6-4, 6-3',
+      scoreText: '6-4, 6-3',
       isWin: true,
+      matchFormat: MatchFormat.threeSets,
+      setScores: const [
+        MatchSetScore(myScore: 6, opponentScore: 4),
+        MatchSetScore(myScore: 6, opponentScore: 3),
+      ],
+      personalMemo: 'モック値',
     ),
-    _SampleMatch(
-      date: '8月18日',
+    MatchHistoryItem(
+      matchDate: DateTime(2026, 8, 16),
       opponentName: 'ピンちゃん',
-      score: '4-6, 7-5, 10-8',
+      scoreText: '4-6, 7-5, 10-8',
       isWin: true,
+      matchFormat: MatchFormat.threeSets,
+      setScores: const [
+        MatchSetScore(myScore: 4, opponentScore: 6),
+        MatchSetScore(myScore: 7, opponentScore: 5),
+        MatchSetScore(myScore: 10, opponentScore: 8),
+      ],
+      personalMemo: 'モック値',
     ),
   ];
 
@@ -44,6 +62,7 @@ class MatchHistoryScreen extends StatefulWidget {
 class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
   late DateTime _displayedMonth;
   DateTime? _selectedDate;
+  var _isMatchDetailOpen = false;
 
   @override
   void initState() {
@@ -79,6 +98,22 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
         builder: (context) => const MatchEntryScreen(),
       ),
     );
+  }
+
+  Future<void> _showMatchDetail(MatchHistoryItem match) async {
+    if (_isMatchDetailOpen) return;
+
+    _isMatchDetailOpen = true;
+    try {
+      await MatchDetailSheet.show(
+        context,
+        match: match,
+        // メモ保存は別Issueのため、入力値をそのまま返す。
+        onSaveMemo: (memo) async => memo,
+      );
+    } finally {
+      _isMatchDetailOpen = false;
+    }
   }
 
   void _handleBottomNavTap(int index) {
@@ -151,26 +186,13 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
     );
   }
 
-  Widget _buildMatchCard(_SampleMatch match) {
+  Widget _buildMatchCard(MatchHistoryItem match) {
     return MatchCard(
-      date: match.date,
+      date: match.displayDate,
       opponentName: match.opponentName,
-      score: match.score,
+      score: match.scoreText,
       isWin: match.isWin,
+      onTap: () => _showMatchDetail(match),
     );
   }
-}
-
-class _SampleMatch {
-  final String date;
-  final String opponentName;
-  final String score;
-  final bool? isWin;
-
-  const _SampleMatch({
-    required this.date,
-    required this.opponentName,
-    required this.score,
-    required this.isWin,
-  });
 }
