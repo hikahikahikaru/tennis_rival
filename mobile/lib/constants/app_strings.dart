@@ -20,6 +20,9 @@ class AppStrings {
   static const String homeRecentMatchesFetchFailed = '試合履歴の取得に失敗しました';
   static const String matchHistoryStatsTitle = '月間戦績';
   static const String matchHistoryMatchListTitle = '試合一覧';
+  static const String matchHistoryMatchesLoading = '試合一覧を読み込み中です';
+  static const String matchHistoryMatchesEmpty = 'この月の試合はありません';
+  static const String matchHistoryMatchesFetchFailed = '試合一覧の取得に失敗しました';
   static const List<String> weekdaysJapanese = [
     '月',
     '火',
@@ -54,6 +57,9 @@ class AppStrings {
   static const String matchOpponentUnknown = '対戦相手不明';
   static const String matchScoreUnknown = 'スコア不明';
   static const String matchDetailTitle = '試合詳細';
+  static const String matchDetailLoading = '試合詳細を読み込み中です';
+  static const String matchDetailFetchFailed = '試合詳細の取得に失敗しました';
+  static const String matchDetailIdMissing = '試合詳細を取得できません';
   static const String matchDetailSetCount = 'セットカウント';
   static const String matchDetailMemoEmpty = 'メモはまだありません';
   static const String matchDetailMemoEditTooltip = '個人メモを編集';
