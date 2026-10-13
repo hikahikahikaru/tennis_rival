@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:mobile/models/match_history_query.dart';
 import 'package:mobile/models/match_type.dart';
 import 'package:mobile/repositories/match_history_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
