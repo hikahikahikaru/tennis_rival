@@ -18,6 +18,7 @@ void main() {
     await tester.pumpWidget(buildSubject());
 
     // 本体と同じ文字列生成関数に依存せず、表示仕様そのものを検証する。
+    expect(find.text('6試合'), findsOneWidget);
     expect(find.text('4勝 2敗'), findsOneWidget);
     expect(find.text('67%'), findsOneWidget);
   });

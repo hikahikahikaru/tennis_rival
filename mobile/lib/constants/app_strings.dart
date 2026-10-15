@@ -71,6 +71,7 @@ class AppStrings {
   // StatsCard
   static const String statsCardTitle = '今月の戦績';
   static const String statsCardWinRateLabel = '勝率';
+  static String statsCardMatchCount(int totalMatches) => '$totalMatches試合';
   static String statsCardRecord(int wins, int losses) => '$wins勝 $losses敗';
   static String statsCardWinRate(int winRatePercentage) =>
       '$winRatePercentage%';

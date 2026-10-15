@@ -36,9 +36,6 @@ class MatchHistoryScreen extends StatefulWidget {
     this.currentUserId,
   });
 
-  // 月次集計は後続Issueのため、サマリーのみ仮データを維持する。
-  static const UserStats _sampleStats = UserStats(wins: 2, losses: 2);
-
   @override
   State<MatchHistoryScreen> createState() => _MatchHistoryScreenState();
 }
@@ -89,6 +86,8 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
 
   List<DateTime> get _matchDates =>
       _matches.map((match) => match.matchDate).toList(growable: false);
+
+  UserStats get _monthlyStats => UserStats.fromMatches(_matches);
 
   Future<void> _loadMatchesForDisplayedMonth() async {
     // 月切り替えが連続しても、古い月の応答で最新表示を上書きしない。
@@ -238,8 +237,8 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const StatsCard(
-                stats: MatchHistoryScreen._sampleStats,
+              StatsCard(
+                stats: _monthlyStats,
                 title: AppStrings.matchHistoryStatsTitle,
               ),
               const SizedBox(height: AppSizes.spacingLarge),

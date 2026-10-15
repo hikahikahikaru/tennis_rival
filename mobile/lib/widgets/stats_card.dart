@@ -6,7 +6,7 @@ import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 import '../models/user_stats.dart';
 
-/// 今月の勝敗と勝率を表示する読み取り専用のサマリーカード。
+/// 対象期間の試合数・勝敗・勝率を表示する読み取り専用のサマリーカード。
 class StatsCard extends StatelessWidget {
   final UserStats stats;
   final String title;
@@ -68,11 +68,22 @@ class StatsCard extends StatelessWidget {
           style: AppTextStyles.statsCardTitle,
         ),
         const SizedBox(height: AppSizes.statsCardTextSpacing),
-        Text(
-          AppStrings.statsCardRecord(stats.wins, stats.losses),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.statsCardRecord,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            children: [
+              Text(
+                AppStrings.statsCardMatchCount(stats.totalMatches),
+                style: AppTextStyles.statsCardRecord,
+              ),
+              const SizedBox(width: AppSizes.statsCardTextSpacing),
+              Text(
+                AppStrings.statsCardRecord(stats.wins, stats.losses),
+                style: AppTextStyles.statsCardRecord,
+              ),
+            ],
+          ),
         ),
       ],
     );

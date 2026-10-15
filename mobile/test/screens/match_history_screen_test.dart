@@ -82,12 +82,52 @@ void main() {
     expect(find.byType(MatchCard), findsNWidgets(2));
     expect(find.text('vs 西やん'), findsOneWidget);
     expect(find.text('vs ピンちゃん'), findsOneWidget);
+    expect(find.text('2試合'), findsOneWidget);
+    expect(find.text('2勝 0敗'), findsOneWidget);
+    expect(find.text('100%'), findsOneWidget);
 
     await tester.tap(find.byTooltip('翌月'));
     await tester.pumpAndSettle();
 
     expect(find.text('2026年9月'), findsOneWidget);
     expect(find.text('この月の試合はありません'), findsOneWidget);
+    expect(find.text('0試合'), findsOneWidget);
+    expect(find.text('0勝 0敗'), findsOneWidget);
+    expect(find.text('0%'), findsOneWidget);
+  });
+
+  testWidgets('updates monthly stats but not when only a date is selected',
+      (tester) async {
+    final repository = _FakeMatchHistoryRepository(
+      handler: (query) async => query.startDate!.month == 8
+          ? [
+              _historyItem(firstMatchId, isWin: true),
+              _historyItem(secondMatchId, isWin: false),
+              _historyItem('unknown-match', isWin: null),
+            ]
+          : [
+              _historyItem('september-win', isWin: true),
+            ],
+    );
+    await pumpScreen(tester, historyRepository: repository);
+
+    expect(find.text('3試合'), findsOneWidget);
+    expect(find.text('1勝 1敗'), findsOneWidget);
+    expect(find.text('50%'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('match-calendar-day-24')));
+    await tester.pump();
+
+    expect(find.text('3試合'), findsOneWidget);
+    expect(find.text('1勝 1敗'), findsOneWidget);
+    expect(find.text('50%'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('翌月'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1試合'), findsOneWidget);
+    expect(find.text('1勝 0敗'), findsOneWidget);
+    expect(find.text('100%'), findsOneWidget);
   });
 
   testWidgets('does not overwrite a newer month with an older response',
@@ -101,14 +141,22 @@ void main() {
 
     await pumpScreenWithoutSettling(tester, historyRepository: repository);
     expect(find.text('試合一覧を読み込み中です'), findsOneWidget);
+    expect(find.text('0試合'), findsOneWidget);
+    expect(find.text('0勝 0敗'), findsOneWidget);
 
     await tester.tap(find.byTooltip('翌月'));
     await tester.pump();
     september.complete([
-      _historyItem(secondMatchId, opponentName: '9月の相手'),
+      _historyItem(
+        secondMatchId,
+        opponentName: '9月の相手',
+        isWin: false,
+      ),
     ]);
     await tester.pumpAndSettle();
     expect(find.text('vs 9月の相手'), findsOneWidget);
+    expect(find.text('1試合'), findsOneWidget);
+    expect(find.text('0勝 1敗'), findsOneWidget);
 
     august.complete([
       _historyItem(firstMatchId, opponentName: '8月の相手'),
@@ -116,6 +164,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('vs 9月の相手'), findsOneWidget);
     expect(find.text('vs 8月の相手'), findsNothing);
+    expect(find.text('1試合'), findsOneWidget);
+    expect(find.text('0勝 1敗'), findsOneWidget);
   });
 
   testWidgets('loads detail with match and user IDs then shows fetched data',
@@ -357,6 +407,9 @@ void main() {
     await pumpScreen(tester, historyRepository: repository);
 
     expect(find.text('試合一覧の取得に失敗しました'), findsOneWidget);
+    expect(find.text('0試合'), findsOneWidget);
+    expect(find.text('0勝 0敗'), findsOneWidget);
+    expect(find.text('0%'), findsOneWidget);
     await tester.ensureVisible(find.text('再試行'));
     await tester.tap(find.text('再試行'));
     await tester.pumpAndSettle();
@@ -423,6 +476,7 @@ MatchHistoryItem _historyItem(
   String matchId, {
   String opponentName = '西やん',
   String? personalMemo,
+  bool? isWin = true,
 }) {
   return MatchHistoryItem(
     matchId: matchId,
@@ -430,7 +484,7 @@ MatchHistoryItem _historyItem(
     currentUserName: 'たけし',
     opponentName: opponentName,
     scoreText: '6-4',
-    isWin: true,
+    isWin: isWin,
     setScores: const [MatchSetScore(myScore: 6, opponentScore: 4)],
     personalMemo: personalMemo,
   );
