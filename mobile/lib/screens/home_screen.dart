@@ -35,8 +35,7 @@ class HomeScreen extends StatefulWidget {
     this.currentUserId,
   });
 
-  // 戦績と確認待ち件数は画面確認用の仮データ。DB対応時に差し替える。
-  static const UserStats _sampleStats = UserStats(wins: 4, losses: 2);
+  // 確認待ち件数は画面確認用の仮データ。DB対応時に差し替える。
   static const int _samplePendingCount = 1;
 
   @override
@@ -51,12 +50,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Object? _recentMatchesError;
   List<MatchHistoryItem> _recentMatches = const [];
   int _recentMatchesRequestId = 0;
+  UserStats? _monthlyStats;
+  Object? _monthlyStatsError;
+  var _isMonthlyStatsLoading = true;
+  var _monthlyStatsRequestId = 0;
 
   @override
   void initState() {
     super.initState();
     _setDependencies();
     _loadRecentMatches();
+    _loadMonthlyStats();
   }
 
   @override
@@ -68,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
         oldWidget.currentUserId != widget.currentUserId) {
       _setDependencies();
       _loadRecentMatches();
+      _loadMonthlyStats();
     }
   }
 
@@ -114,6 +119,38 @@ class _HomeScreenState extends State<HomeScreen> {
         _recentMatches = const [];
         _recentMatchesError = error;
         _isRecentMatchesLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadMonthlyStats() async {
+    // プリロードと同じ現在年月をキーにし、日付変更後の再試行でも新しい月を参照する。
+    final now = DateTime.now();
+    final requestId = ++_monthlyStatsRequestId;
+    setState(() {
+      _isMonthlyStatsLoading = true;
+      _monthlyStatsError = null;
+      _monthlyStats = null;
+    });
+
+    try {
+      final matches = await _matchHistoryService.loadMatchesByMonth(
+        currentUserId: _currentUserId,
+        year: now.year,
+        month: now.month,
+      );
+      if (!mounted || requestId != _monthlyStatsRequestId) return;
+
+      setState(() {
+        _monthlyStats = UserStats.fromMatches(matches);
+        _isMonthlyStatsLoading = false;
+      });
+    } catch (error) {
+      if (!mounted || requestId != _monthlyStatsRequestId) return;
+
+      setState(() {
+        _monthlyStatsError = error;
+        _isMonthlyStatsLoading = false;
       });
     }
   }
@@ -227,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () => _openMatchEntryScreen(context),
               ),
               const SizedBox(height: AppSizes.spacingLarge),
-              const StatsCard(stats: HomeScreen._sampleStats),
+              _buildMonthlyStats(),
               const SizedBox(height: AppSizes.scoreSectionSpacing),
               PendingMatchCard(
                 pendingCount: HomeScreen._samplePendingCount,
@@ -260,6 +297,43 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (index) => _handleBottomNavTap(context, index),
       ),
     );
+  }
+
+  Widget _buildMonthlyStats() {
+    if (_isMonthlyStatsLoading) {
+      return const Center(
+        child: Column(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: AppSizes.spacingMedium),
+            Text(
+              AppStrings.homeStatsLoading,
+              style: AppTextStyles.opponentPickerEmpty,
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_monthlyStatsError != null) {
+      return Center(
+        child: Column(
+          children: [
+            const Text(
+              AppStrings.homeStatsFetchFailed,
+              style: AppTextStyles.opponentPickerError,
+            ),
+            const SizedBox(height: AppSizes.spacingSmall),
+            OutlinedButton(
+              onPressed: _loadMonthlyStats,
+              child: const Text(AppStrings.retry),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return StatsCard(stats: _monthlyStats!);
   }
 
   Widget _buildHeader(BuildContext context) {
