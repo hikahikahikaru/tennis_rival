@@ -13,12 +13,14 @@ import 'package:mobile/screens/match_entry_screen.dart';
 import 'package:mobile/screens/match_history_screen.dart';
 import 'package:mobile/services/match_history_service.dart';
 import 'package:mobile/services/match_memo_service.dart';
+import 'package:mobile/widgets/stats_card.dart';
 
 void main() {
   Future<void> pumpHome(
     WidgetTester tester, {
     Size? screenSize,
     _FakeMatchHistoryRepository? repository,
+    MatchHistoryService? historyService,
     MatchMemoRepository? memoRepository,
   }) async {
     if (screenSize != null) {
@@ -28,18 +30,19 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
     }
 
-    final historyService = MatchHistoryService(
-      repository:
-          repository ?? _FakeMatchHistoryRepository.success(_recentMatches),
-    );
+    final resolvedHistoryService = historyService ??
+        MatchHistoryService(
+          repository:
+              repository ?? _FakeMatchHistoryRepository.success(_recentMatches),
+        );
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
         home: HomeScreen(
-          matchHistoryService: historyService,
+          matchHistoryService: resolvedHistoryService,
           matchMemoService: MatchMemoService(
             repository: memoRepository ?? _FakeMatchMemoRepository(),
-            matchHistoryService: historyService,
+            matchHistoryService: resolvedHistoryService,
           ),
         ),
       ),
@@ -48,15 +51,16 @@ void main() {
   }
 
   testWidgets(
-    'shows greeting, sample stats, pending count, and fetched recent matches',
+    'shows greeting, monthly stats, pending count, and fetched recent matches',
     (WidgetTester tester) async {
       await pumpHome(tester);
 
       // 本体の文字列生成関数に依存せず、画面仕様として見える文言を検証する。
       expect(find.text('Tennis Rival'), findsOneWidget);
       expect(find.text('こんにちは、たけしさん'), findsOneWidget);
-      expect(find.text('4勝 2敗'), findsOneWidget);
-      expect(find.text('67%'), findsOneWidget);
+      expect(find.text('2試合'), findsOneWidget);
+      expect(find.text('2勝 0敗'), findsOneWidget);
+      expect(find.text('100%'), findsOneWidget);
       expect(find.text('確認待ちの試合'), findsOneWidget);
       expect(find.text('1件'), findsOneWidget);
       expect(find.text('最近の試合'), findsOneWidget);
@@ -77,12 +81,17 @@ void main() {
     );
 
     expect(find.text('最近の試合はまだありません'), findsOneWidget);
+    expect(find.text('0試合'), findsOneWidget);
+    expect(find.text('0勝 0敗'), findsOneWidget);
+    expect(find.text('0%'), findsOneWidget);
   });
 
   testWidgets('shows error and retries fetched recent matches',
       (WidgetTester tester) async {
     final repository = _FakeMatchHistoryRepository.responses([
       Exception('DB error'),
+      _recentMatches,
+    ], monthResponses: [
       _recentMatches,
     ]);
 
@@ -96,6 +105,89 @@ void main() {
 
     expect(find.text('vs 西やん'), findsOneWidget);
     expect(repository.fetchCallCount, 2);
+  });
+
+  testWidgets('aggregates the complete current month independently of recents',
+      (WidgetTester tester) async {
+    final repository = _FakeMatchHistoryRepository.responses(
+      [_recentMatches],
+      monthResponses: [
+        [
+          _match('month-win-1', true),
+          _match('month-win-2', true),
+          _match('month-loss', false),
+          _match('month-unknown', null),
+        ],
+      ],
+    );
+
+    await pumpHome(tester, repository: repository);
+
+    expect(find.text('4試合'), findsOneWidget);
+    expect(find.text('2勝 1敗'), findsOneWidget);
+    expect(find.text('67%'), findsOneWidget);
+    expect(repository.monthFetchCallCount, 1);
+  });
+
+  testWidgets('shows loading while current month stats are pending',
+      (WidgetTester tester) async {
+    final monthResponse = Completer<List<MatchHistoryItem>>();
+    final repository = _DeferredMonthlyMatchHistoryRepository(monthResponse);
+
+    await pumpHome(
+      tester,
+      historyService: MatchHistoryService(repository: repository),
+    );
+
+    expect(find.text('今月の戦績を読み込み中です'), findsOneWidget);
+    expect(find.byType(StatsCard), findsNothing);
+
+    monthResponse.complete([_match('month-win', true)]);
+    await tester.pump();
+    expect(find.text('1試合'), findsOneWidget);
+    expect(find.text('1勝 0敗'), findsOneWidget);
+  });
+
+  testWidgets('shows a monthly stats error and retries without showing zero',
+      (WidgetTester tester) async {
+    final repository = _FakeMatchHistoryRepository.responses(
+      [_recentMatches],
+      monthResponses: [
+        Exception('monthly stats failed'),
+        [_match('retry-win', true)],
+      ],
+    );
+
+    await pumpHome(tester, repository: repository);
+
+    expect(find.text('今月の戦績の取得に失敗しました'), findsOneWidget);
+    expect(find.text('0試合'), findsNothing);
+
+    await tester.tap(find.text('再試行'));
+    await tester.pump();
+
+    expect(find.text('1試合'), findsOneWidget);
+    expect(find.text('1勝 0敗'), findsOneWidget);
+    expect(repository.monthFetchCallCount, 2);
+  });
+
+  testWidgets('reuses the current month cache preloaded before HomeScreen',
+      (WidgetTester tester) async {
+    final repository = _FakeMatchHistoryRepository.responses(
+      [_recentMatches],
+      monthResponses: [
+        [_match('cached-win', true)],
+      ],
+    );
+    final service = MatchHistoryService(repository: repository);
+    final now = DateTime.now();
+    await service.loadMatchesByMonth(year: now.year, month: now.month);
+
+    await pumpHome(tester, historyService: service);
+
+    expect(find.text('1試合'), findsOneWidget);
+    expect(find.text('1勝 0敗'), findsOneWidget);
+    expect(repository.monthFetchCallCount, 1);
   });
 
   testWidgets('older success cannot replace newer user result',
@@ -350,11 +442,26 @@ final List<MatchHistoryItem> _recentMatches = [
   ),
 ];
 
+MatchHistoryItem _match(String matchId, bool? isWin) {
+  return MatchHistoryItem(
+    matchId: matchId,
+    matchDate: DateTime.now(),
+    opponentName: '月間対戦相手',
+    scoreText: '6-4',
+    isWin: isWin,
+  );
+}
+
 class _FakeMatchHistoryRepository implements MatchHistoryRepository {
   final List<Object> _responses;
+  final List<Object> _monthResponses;
   int fetchCallCount = 0;
+  int monthFetchCallCount = 0;
 
-  _FakeMatchHistoryRepository.responses(this._responses);
+  _FakeMatchHistoryRepository.responses(
+    this._responses, {
+    List<Object>? monthResponses,
+  }) : _monthResponses = List<Object>.of(monthResponses ?? _responses);
 
   factory _FakeMatchHistoryRepository.success(List<MatchHistoryItem> matches) {
     return _FakeMatchHistoryRepository.responses([matches]);
@@ -375,8 +482,30 @@ class _FakeMatchHistoryRepository implements MatchHistoryRepository {
   }
 
   @override
+  Future<List<MatchHistoryItem>> fetchMatches(MatchHistoryQuery query) async {
+    monthFetchCallCount++;
+    final response = _monthResponses.length > 1
+        ? _monthResponses.removeAt(0)
+        : _monthResponses.first;
+    if (response is Exception) throw response;
+    return response as List<MatchHistoryItem>;
+  }
+}
+
+class _DeferredMonthlyMatchHistoryRepository implements MatchHistoryRepository {
+  final Completer<List<MatchHistoryItem>> monthResponse;
+
+  _DeferredMonthlyMatchHistoryRepository(this.monthResponse);
+
+  @override
+  Future<List<MatchHistoryItem>> fetchRecentMatches(
+      String currentUserId) async {
+    return _recentMatches;
+  }
+
+  @override
   Future<List<MatchHistoryItem>> fetchMatches(MatchHistoryQuery query) {
-    return fetchRecentMatches(query.currentUserId);
+    return monthResponse.future;
   }
 }
 
