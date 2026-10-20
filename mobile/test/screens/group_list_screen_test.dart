@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/models/group_summary.dart';
+import 'package:mobile/screens/group_create_screen.dart';
 import 'package:mobile/screens/group_list_screen.dart';
 import 'package:mobile/widgets/group_card.dart';
 
@@ -44,13 +45,13 @@ void main() {
     expect(find.text('グループに参加'), findsOneWidget);
   });
 
-  testWidgets('shows message when create button is tapped',
+  testWidgets('opens create screen when create button is tapped',
       (WidgetTester tester) async {
     await tester.pumpWidget(buildSubject());
 
     await tester.tap(find.text('グループ作成'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    expect(find.text('この機能は未実装です'), findsOneWidget);
+    expect(find.byType(GroupCreateScreen), findsOneWidget);
   });
 }
