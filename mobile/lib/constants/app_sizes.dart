@@ -110,6 +110,10 @@ class AppSizes {
   static const int labeledTextFieldMultilineMinLines = 4;
   static const int labeledTextFieldMultilineMaxLines = 6;
 
+  // InfoBoxで使用するサイズ
+  static const double infoBoxPadding = 16.0;
+  static const double infoBoxTextSpacing = 8.0;
+
   // 余白・すき間のサイズ（spacingSmall = 4.0の下に追加）
   static const double spacingMedium = 12.0;
   static const double spacingLarge = 24.0;

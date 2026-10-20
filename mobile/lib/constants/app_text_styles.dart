@@ -254,6 +254,18 @@ class AppTextStyles {
     color: AppColors.textSecondary,
   );
 
+  // InfoBox \u7528\u306e\u30c6\u30ad\u30b9\u30c8\u30b9\u30bf\u30a4\u30eb
+  static const TextStyle infoBoxTitle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    color: AppColors.primary,
+  );
+
+  static const TextStyle infoBoxBody = TextStyle(
+    fontSize: 12,
+    color: AppColors.matchDateText,
+  );
+
   // MatchCalendar用のテキストスタイル
   static const TextStyle matchCalendarMonth = TextStyle(
     fontSize: 18,
