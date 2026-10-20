@@ -70,6 +70,14 @@ class AppStrings {
   static const String matchDetailMemoSaving = '保存中...';
   static const String matchDetailMemoSaveFailed = 'メモの保存に失敗しました。もう一度お試しください';
   static const String matchDetailClose = '閉じる';
+  // GroupListScreen / GroupCard
+  static const String groupListTitle = 'グループ';
+  static const String groupListSectionTitle = '所属グループ';
+  static const String groupListEmpty = '所属しているグループはまだありません';
+  static const String groupCreate = 'グループ作成';
+  static const String groupJoin = 'グループに参加';
+  static const String groupUnavailable = 'この機能は未実装です';
+  static String groupMemberCount(int count) => 'メンバー $count人';
   // StatsCard
   static const String statsCardTitle = '今月の戦績';
   static const String statsCardWinRateLabel = '勝率';
