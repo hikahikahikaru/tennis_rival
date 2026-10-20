@@ -13,6 +13,7 @@ import '../widgets/group_info_panel.dart';
 import '../widgets/group_match_card.dart';
 import '../widgets/group_member_card.dart';
 import '../widgets/underline_tab_bar.dart';
+import 'group_member_stats_screen.dart';
 
 /// グループ詳細画面。DB連携は別issueのため、現在はモックデータを表示する。
 class GroupDetailScreen extends StatefulWidget {
@@ -45,6 +46,18 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
       const SnackBar(content: Text(AppStrings.groupInviteCodeCopied)),
+    );
+  }
+
+  void _openMemberStats(GroupMember member) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GroupMemberStatsScreen(
+          member: member,
+          groupName: _group.name,
+        ),
+      ),
     );
   }
 
@@ -87,7 +100,14 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
           title: AppStrings.groupMemberListTitle,
           countText: AppStrings.groupMemberSectionCount(_members.length),
           emptyMessage: AppStrings.groupMemberListEmpty,
-          cards: _members.map((m) => GroupMemberCard(member: m)).toList(),
+          cards: _members
+              .map(
+                (m) => GroupMemberCard(
+                  member: m,
+                  onTap: () => _openMemberStats(m),
+                ),
+              )
+              .toList(),
         ),
       GroupDetailTab.matches => _buildSection(
           title: AppStrings.groupMatchListTitle,

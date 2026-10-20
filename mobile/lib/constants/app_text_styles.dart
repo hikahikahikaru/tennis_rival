@@ -336,4 +336,40 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     color: AppColors.primary,
   );
+
+  // GroupMemberStatsScreen 用のテキストスタイル
+  static const TextStyle memberStatsName = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle memberStatsLabel = TextStyle(
+    fontSize: 12,
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle memberStatsValue = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle memberStatsWinValue = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchWin,
+  );
+
+  static const TextStyle memberStatsLoseValue = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchLose,
+  );
+
+  static const TextStyle memberStatsWinRate = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.primary,
+  );
 }
