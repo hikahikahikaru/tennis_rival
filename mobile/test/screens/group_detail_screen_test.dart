@@ -194,7 +194,8 @@ void main() {
     testWidgets('shows empty messages', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: GroupDetailScreen(group: detail, members: const [], matches: const []),
+          home: GroupDetailScreen(
+              group: detail, members: const [], matches: const []),
         ),
       );
       expect(find.text('メンバーはまだいません'), findsOneWidget);
