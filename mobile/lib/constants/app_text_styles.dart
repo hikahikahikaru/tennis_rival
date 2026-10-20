@@ -284,4 +284,56 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     color: AppColors.matchOpponentText,
   );
+
+  // GroupDetailScreen 用のテキストスタイル
+  static const TextStyle groupDetailName = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle groupDetailDescription = TextStyle(
+    fontSize: 14,
+    color: AppColors.matchDateText,
+  );
+
+  static const TextStyle groupDetailMeta = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    color: AppColors.primary,
+  );
+
+  static const TextStyle groupDetailInviteCode = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle groupDetailCopyButton = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: AppColors.primary,
+  );
+
+  static const TextStyle groupDetailTab = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+  );
+
+  static const TextStyle groupDetailSectionTitle = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle groupDetailSectionCount = TextStyle(
+    fontSize: 12,
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle groupDetailAdminBadge = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    color: AppColors.primary,
+  );
 }

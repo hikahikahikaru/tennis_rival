@@ -114,6 +114,19 @@ class AppSizes {
   static const double infoBoxPadding = 16.0;
   static const double infoBoxTextSpacing = 8.0;
 
+  // グループ詳細画面で使用するサイズ
+  static const double groupDetailCardPadding = 16.0;
+  static const double groupDetailTextSpacing = 8.0;
+  static const double groupDetailInfoRowSpacing = 16.0;
+  static const double groupDetailToggleIconSize = 24.0;
+  static const double groupDetailCodeFieldHeight = 48.0;
+  static const double groupDetailCodeSpacing = 12.0;
+  static const double groupDetailTabIndicatorHeight = 2.0;
+  static const double groupDetailTabVerticalPadding = 12.0;
+  static const double groupDetailBadgeHorizontalPadding = 8.0;
+  static const double groupDetailBadgeVerticalPadding = 2.0;
+  static const double groupDetailBadgeRadius = 999.0;
+
   // 余白・すき間のサイズ（spacingSmall = 4.0の下に追加）
   static const double spacingMedium = 12.0;
   static const double spacingLarge = 24.0;

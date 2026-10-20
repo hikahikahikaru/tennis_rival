@@ -11,6 +11,7 @@ import '../widgets/group_card.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/secondary_button.dart';
 import 'group_create_screen.dart';
+import 'group_detail_screen.dart';
 import 'group_join_screen.dart';
 
 /// 所属グループの一覧画面。DB連携は別issueのため、現在はモックデータを表示する。
@@ -38,6 +39,13 @@ class GroupListScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const GroupCreateScreen()),
+    );
+  }
+
+  void _openGroupDetailScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const GroupDetailScreen()),
     );
   }
 
@@ -116,7 +124,10 @@ class GroupListScreen extends StatelessWidget {
       itemCount: groups.length,
       separatorBuilder: (context, index) =>
           const SizedBox(height: AppSizes.spacingMedium),
-      itemBuilder: (context, index) => GroupCard(group: groups[index]),
+      itemBuilder: (context, index) => GroupCard(
+        group: groups[index],
+        onTap: () => _openGroupDetailScreen(context),
+      ),
     );
   }
 }
