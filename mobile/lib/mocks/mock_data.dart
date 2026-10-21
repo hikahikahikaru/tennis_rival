@@ -1,3 +1,6 @@
+import '../models/group_detail.dart';
+import '../models/group_match_summary.dart';
+import '../models/group_member.dart';
 import '../models/group_summary.dart';
 import '../models/user_model.dart';
 
@@ -37,6 +40,42 @@ class MockData {
   static const List<GroupSummary> groups = [
     GroupSummary(id: 'group-1', name: '週末テニス', memberCount: 3),
     GroupSummary(id: 'group-2', name: 'テニスサークル', memberCount: 8),
+  ];
+
+  /// グループ詳細画面の確認用ダミーデータ（DB連携は別issue）
+  static final GroupDetail groupDetail = GroupDetail(
+    id: 'group-1',
+    name: '週末テニス',
+    description: '毎週土曜日に活動するテニス仲間です。',
+    createdAt: DateTime(2026, 4, 1),
+    adminName: 'たけし',
+    inviteCode: 'ABC123',
+    memberCount: groupMembers.length,
+  );
+
+  static const List<GroupMember> groupMembers = [
+    GroupMember(id: 'u1', name: 'たけし', wins: 12, losses: 8, isAdmin: true),
+    GroupMember(id: 'u2', name: '西やん', wins: 10, losses: 10),
+    GroupMember(id: 'u3', name: 'ピンちゃん', wins: 8, losses: 4),
+  ];
+
+  static final List<GroupMatchSummary> groupMatches = [
+    GroupMatchSummary(
+      id: 'm1',
+      matchDate: DateTime(2026, 8, 24),
+      player1Name: 'たけし',
+      player2Name: '西やん',
+      winnerName: 'たけし',
+      scoreText: '6-4, 6-3',
+    ),
+    GroupMatchSummary(
+      id: 'm2',
+      matchDate: DateTime(2026, 8, 18),
+      player1Name: 'たけし',
+      player2Name: 'ピンちゃん',
+      winnerName: 'たけし',
+      scoreText: '6-4, 6-3',
+    ),
   ];
 
   /// 「たけし」と同じグループに所属する対戦相手のモックリスト

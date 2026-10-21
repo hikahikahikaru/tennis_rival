@@ -141,6 +141,32 @@ class AppStrings {
       'グループの作成者から共有されたコードを入力すると、グループに参加できます。';
   static const String groupJoinUnavailable = 'グループ参加は未実装です';
 
+  // GroupDetailScreen
+  static const String groupDetailTitle = 'グループ詳細';
+  static const String groupTabMembers = 'メンバー';
+  static const String groupTabMatches = '戦績';
+  static const String groupMemberListTitle = 'メンバー一覧';
+  static const String groupMatchListTitle = 'グループ内の試合';
+  static const String groupAdminBadge = '管理者';
+  static const String groupInviteCodeTitle = '招待コード';
+  static const String groupInviteCodeCopy = 'コピー';
+  static const String groupInviteCodeCopied = '招待コードをコピーしました';
+  static const String groupInviteCodeNote = 'このコードを共有して、メンバーを招待できます。';
+  static const String groupInfoExpandTooltip = 'グループ情報を開く';
+  static const String groupInfoCollapseTooltip = 'グループ情報を折りたたむ';
+  static const String groupMemberListEmpty = 'メンバーはまだいません';
+  static const String groupMatchListEmpty = 'グループ内の試合はまだありません';
+  static String groupMemberSectionCount(int count) => '$count人';
+  static String groupMatchSectionCount(int count) => '$count件';
+  static String groupCreatedDate(String date) => '作成日：$date';
+  static String groupAdminName(String name) => '管理者：$name';
+  static String groupMemberRecord(int wins, int losses, int winRate) =>
+      '$wins勝 $losses敗（勝率$winRate%）';
+  static String groupMatchVersus(String player1, String player2) =>
+      '$player1 vs $player2';
+  static String groupMatchWinner(String name) => '勝者：$name';
+  static String groupMatchScore(String score) => 'スコア：$score';
+
   // エラー・ログ用メッセージ
   static String errorOpponentFetch(Object error) =>
       '対戦相手の取得中にエラーが発生しました: $error';
