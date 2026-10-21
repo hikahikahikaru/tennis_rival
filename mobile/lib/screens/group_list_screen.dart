@@ -10,6 +10,7 @@ import '../widgets/bottom_nav_bar.dart';
 import '../widgets/group_card.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/secondary_button.dart';
+import 'group_create_screen.dart';
 
 /// 所属グループの一覧画面。DB連携は別issueのため、現在はモックデータを表示する。
 class GroupListScreen extends StatelessWidget {
@@ -29,6 +30,13 @@ class GroupListScreen extends StatelessWidget {
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
       const SnackBar(content: Text(AppStrings.groupUnavailable)),
+    );
+  }
+
+  void _openGroupCreateScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const GroupCreateScreen()),
     );
   }
 
@@ -73,7 +81,7 @@ class GroupListScreen extends StatelessWidget {
               const SizedBox(height: AppSizes.spacingMedium),
               PrimaryButton(
                 label: AppStrings.groupCreate,
-                onPressed: () => _showTemporaryMessage(context),
+                onPressed: () => _openGroupCreateScreen(context),
               ),
               const SizedBox(height: AppSizes.spacingMedium),
               SecondaryButton(

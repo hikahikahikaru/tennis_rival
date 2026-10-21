@@ -7,6 +7,8 @@ class AppColors {
   static const Color borderLight =
       Color(0xFFE0E0E0); // 薄いグレーの枠線（Colors.grey.shade300相当）
   static const Color textSecondary = Colors.black54; // サブテキスト用の色
+  static const Color requiredMark = Color(0xFFB3261E); // 必須項目マークの色
+  static const Color inputHint = Colors.black38; // 入力欄のヒント文字色
 
   static const Color cardBackground = Colors.white; // カード共通の背景色
   static const Color cardBorder = Color(0xFFE2EAE3); // カード共通の枠線色

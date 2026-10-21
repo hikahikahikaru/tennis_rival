@@ -231,6 +231,29 @@ class AppTextStyles {
     color: AppColors.matchOpponentText,
   );
 
+  // LabeledTextField 用のテキストスタイル
+  static const TextStyle labeledTextFieldLabel = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle labeledTextFieldRequiredMark = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    color: AppColors.requiredMark,
+  );
+
+  static const TextStyle labeledTextFieldHint = TextStyle(
+    fontSize: 14,
+    color: AppColors.inputHint,
+  );
+
+  static const TextStyle groupCreateNote = TextStyle(
+    fontSize: 12,
+    color: AppColors.textSecondary,
+  );
+
   // MatchCalendar用のテキストスタイル
   static const TextStyle matchCalendarMonth = TextStyle(
     fontSize: 18,

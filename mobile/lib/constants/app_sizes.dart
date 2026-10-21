@@ -106,6 +106,10 @@ class AppSizes {
   static const double homeHeaderIconSize = 28.0;
   static const double homeNotificationIconSize = 24.0;
 
+  // LabeledTextFieldで使用するサイズ
+  static const int labeledTextFieldMultilineMinLines = 4;
+  static const int labeledTextFieldMultilineMaxLines = 6;
+
   // 余白・すき間のサイズ（spacingSmall = 4.0の下に追加）
   static const double spacingMedium = 12.0;
   static const double spacingLarge = 24.0;

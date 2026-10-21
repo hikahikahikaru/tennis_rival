@@ -120,6 +120,17 @@ class AppStrings {
   static const String matchConfirmRequest = '相手に確認依頼を送る';
   static const String matchRegistrationFailed = '試合結果の登録に失敗しました。もう一度お試しください';
 
+  // GroupCreateScreen
+  static const String groupCreateTitle = 'グループ作成';
+  static const String groupNameLabel = 'グループ名';
+  static const String groupNameHint = '例：週末テニス';
+  static const String groupNameRequired = 'グループ名を入力してください';
+  static const String groupDescriptionLabel = 'グループの説明（任意）';
+  static const String groupDescriptionHint = '例：毎週土曜日に活動するテニス仲間';
+  static const String groupCreateNote = '作成後、メンバーを招待できます。';
+  static const String groupCreateUnavailable = 'グループ作成は未実装です';
+  static const String requiredMark = '※';
+
   // エラー・ログ用メッセージ
   static String errorOpponentFetch(Object error) =>
       '対戦相手の取得中にエラーが発生しました: $error';
