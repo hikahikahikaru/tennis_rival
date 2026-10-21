@@ -131,6 +131,16 @@ class AppStrings {
   static const String groupCreateUnavailable = 'グループ作成は未実装です';
   static const String requiredMark = '※';
 
+  // GroupJoinScreen
+  static const String groupJoinTitle = 'グループ参加';
+  static const String groupInviteCodeLabel = '招待コード';
+  static const String groupInviteCodeHint = '例：ABC123';
+  static const String groupInviteCodeRequired = '招待コードを入力してください';
+  static const String groupInviteCodeInfoTitle = '招待コードとは？';
+  static const String groupInviteCodeInfoBody =
+      'グループの作成者から共有されたコードを入力すると、グループに参加できます。';
+  static const String groupJoinUnavailable = 'グループ参加は未実装です';
+
   // エラー・ログ用メッセージ
   static String errorOpponentFetch(Object error) =>
       '対戦相手の取得中にエラーが発生しました: $error';
