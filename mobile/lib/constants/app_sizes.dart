@@ -95,6 +95,10 @@ class AppSizes {
   static const double matchCalendarDotSize = 5.0;
   static const double matchCalendarNavigationIconSize = 24.0;
 
+  // GroupCardで使用するサイズ
+  static const double groupCardPadding = 16.0;
+  static const double groupCardTextSpacing = 8.0;
+
   // 画面全体の共通サイズ
   static const double screenPadding = 16.0;
 

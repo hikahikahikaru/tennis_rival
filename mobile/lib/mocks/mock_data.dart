@@ -1,3 +1,4 @@
+import '../models/group_summary.dart';
 import '../models/user_model.dart';
 
 /// 開発・モック用の仮データをまとめたクラス
@@ -30,6 +31,12 @@ class MockData {
       id: '33333333-3333-3333-3333-333333333333',
       name: 'ピンちゃん',
     ),
+  ];
+
+  /// グループ一覧画面の確認用ダミーデータ（DB連携は別issue）
+  static const List<GroupSummary> groups = [
+    GroupSummary(id: 'group-1', name: '週末テニス', memberCount: 3),
+    GroupSummary(id: 'group-2', name: 'テニスサークル', memberCount: 8),
   ];
 
   /// 「たけし」と同じグループに所属する対戦相手のモックリスト

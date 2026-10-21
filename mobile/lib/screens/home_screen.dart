@@ -16,6 +16,7 @@ import '../widgets/primary_button.dart';
 import '../widgets/recent_match_list.dart';
 import '../widgets/match_detail_sheet.dart';
 import '../widgets/stats_card.dart';
+import 'group_list_screen.dart';
 import 'match_entry_screen.dart';
 import 'match_history_screen.dart';
 
@@ -235,6 +236,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (selectedItem.label == AppStrings.navStats) {
       _openMatchHistoryScreen(context);
+      return;
+    }
+
+    if (selectedItem.label == AppStrings.navGroup) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const GroupListScreen()),
+      );
       return;
     }
 

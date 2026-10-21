@@ -28,6 +28,30 @@ class AppTextStyles {
     color: AppColors.matchOpponentText,
   );
 
+  // GroupListScreen / GroupCard 用のテキストスタイル
+  static const TextStyle groupListTitle = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle groupListSectionTitle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle groupCardName = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle groupCardMemberCount = TextStyle(
+    fontSize: 12,
+    color: AppColors.textSecondary,
+  );
+
   // SelectionField用のテキストスタイル
   static const TextStyle selectionFieldTitle = TextStyle(
     fontSize: 12,
