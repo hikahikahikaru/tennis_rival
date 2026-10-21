@@ -14,8 +14,10 @@ class GroupMember {
     this.isAdmin = false,
   });
 
+  int get totalMatches => wins + losses;
+
   int get winRatePercentage {
-    final total = wins + losses;
+    final total = totalMatches;
     if (total == 0) {
       return 0;
     }

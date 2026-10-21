@@ -167,6 +167,25 @@ class AppStrings {
   static String groupMatchWinner(String name) => '勝者：$name';
   static String groupMatchScore(String score) => 'スコア：$score';
 
+  // GroupMemberStatsScreen
+  static String memberStatsTitle(String name) => '$nameの戦績';
+  static String memberStatsSubtitle(String groupName) => '$groupNameでの対戦成績';
+  static const String memberStatsMatchCountLabel = '試合数';
+  static const String memberStatsWinsLabel = '勝ち';
+  static const String memberStatsLossesLabel = '負け';
+  static const String memberStatsWinRateLabel = '勝率';
+  static String memberStatsWins(int wins) => '$wins勝';
+  static String memberStatsLosses(int losses) => '$losses敗';
+  static const String memberStatsTabAll = '全試合';
+  static const String memberStatsTabWins = '勝ち試合';
+  static const String memberStatsTabLosses = '負け試合';
+  static const String memberStatsMatchListTitle = '試合一覧';
+  static const String memberStatsMatchListEmpty = '該当する試合はありません';
+  static const String memberStatsBadgeWin = '勝ち';
+  static const String memberStatsBadgeLose = '負け';
+  static String memberStatsSectionCount(int count) => '全$count試合';
+  static String memberStatsVersus(String opponent) => 'vs $opponent';
+
   // エラー・ログ用メッセージ
   static String errorOpponentFetch(Object error) =>
       '対戦相手の取得中にエラーが発生しました: $error';

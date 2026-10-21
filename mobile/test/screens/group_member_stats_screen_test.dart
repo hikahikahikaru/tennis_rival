@@ -1,0 +1,150 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/models/group_member.dart';
+import 'package:mobile/models/group_member_match.dart';
+import 'package:mobile/models/member_match_filter.dart';
+import 'package:mobile/screens/group_detail_screen.dart';
+import 'package:mobile/screens/group_member_stats_screen.dart';
+import 'package:mobile/widgets/group_member_card.dart';
+import 'package:mobile/widgets/member_match_card.dart';
+import 'package:mobile/widgets/member_stats_summary_card.dart';
+
+void main() {
+  const member = GroupMember(id: 'u2', name: '西やん', wins: 10, losses: 10);
+
+  final matches = [
+    GroupMemberMatch(
+      id: 'a',
+      matchDate: DateTime(2026, 8, 24),
+      opponentName: 'たけし',
+      scoreText: '4-6, 3-6',
+      isWin: false,
+    ),
+    GroupMemberMatch(
+      id: 'b',
+      matchDate: DateTime(2026, 8, 18),
+      opponentName: 'ピンちゃん',
+      scoreText: '6-4, 7-5',
+      isWin: true,
+    ),
+  ];
+
+  Widget wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
+
+  test('GroupMember.totalMatches sums wins and losses', () {
+    expect(member.totalMatches, 20);
+  });
+
+  test('GroupMemberMatch formats date', () {
+    expect(matches.first.dateText, '2026年8月24日');
+  });
+
+  test('MemberMatchFilter includes matches by result', () {
+    expect(matches.where(MemberMatchFilter.all.includes), hasLength(2));
+    expect(
+      matches.where(MemberMatchFilter.wins.includes).map((m) => m.id),
+      ['b'],
+    );
+    expect(
+      matches.where(MemberMatchFilter.losses.includes).map((m) => m.id),
+      ['a'],
+    );
+  });
+
+  testWidgets('MemberStatsSummaryCard shows record', (tester) async {
+    await tester.pumpWidget(
+      wrap(const MemberStatsSummaryCard(member: member, groupName: '週末テニス')),
+    );
+
+    expect(find.text('西やん'), findsOneWidget);
+    expect(find.text('週末テニスでの対戦成績'), findsOneWidget);
+    expect(find.text('20試合'), findsOneWidget);
+    expect(find.text('10勝'), findsOneWidget);
+    expect(find.text('10敗'), findsOneWidget);
+    expect(find.text('50%'), findsOneWidget);
+  });
+
+  testWidgets('MemberMatchCard shows win and lose badges', (tester) async {
+    await tester.pumpWidget(
+      wrap(
+        Column(
+          children: [
+            MemberMatchCard(match: matches[0]),
+            MemberMatchCard(match: matches[1]),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('vs たけし'), findsOneWidget);
+    expect(find.text('4-6, 3-6'), findsOneWidget);
+    expect(find.text('負け'), findsOneWidget);
+    expect(find.text('勝ち'), findsOneWidget);
+  });
+
+  testWidgets('GroupMemberCard calls onTap', (tester) async {
+    var tapped = 0;
+    await tester.pumpWidget(
+      wrap(GroupMemberCard(member: member, onTap: () => tapped++)),
+    );
+
+    await tester.tap(find.byType(GroupMemberCard));
+
+    expect(tapped, 1);
+  });
+
+  group('GroupMemberStatsScreen', () {
+    Widget buildSubject({List<GroupMemberMatch>? list}) => MaterialApp(
+          home: GroupMemberStatsScreen(
+            member: member,
+            groupName: '週末テニス',
+            matches: list ?? matches,
+          ),
+        );
+
+    testWidgets('shows title and all matches by default', (tester) async {
+      await tester.pumpWidget(buildSubject());
+
+      expect(find.text('西やんの戦績'), findsOneWidget);
+      expect(find.byType(MemberMatchCard), findsNWidgets(2));
+      expect(find.text('全2試合'), findsOneWidget);
+    });
+
+    testWidgets('filters wins and losses by tab', (tester) async {
+      await tester.pumpWidget(buildSubject());
+
+      await tester.tap(find.widgetWithText(InkWell, '勝ち試合'));
+      await tester.pump();
+      expect(find.byType(MemberMatchCard), findsOneWidget);
+      expect(find.text('vs ピンちゃん'), findsOneWidget);
+      expect(find.text('全1試合'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(InkWell, '負け試合'));
+      await tester.pump();
+      expect(find.byType(MemberMatchCard), findsOneWidget);
+      expect(find.text('vs たけし'), findsOneWidget);
+    });
+
+    testWidgets('shows empty message when no matches', (tester) async {
+      await tester.pumpWidget(buildSubject(list: const []));
+
+      expect(find.text('該当する試合はありません'), findsOneWidget);
+      expect(find.text('全0試合'), findsOneWidget);
+    });
+  });
+
+  testWidgets('GroupDetailScreen opens member stats from member card',
+      (tester) async {
+    tester.view.physicalSize = const Size(800, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(const MaterialApp(home: GroupDetailScreen()));
+
+    await tester.tap(find.text('西やん'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GroupMemberStatsScreen), findsOneWidget);
+    expect(find.text('西やんの戦績'), findsOneWidget);
+  });
+}

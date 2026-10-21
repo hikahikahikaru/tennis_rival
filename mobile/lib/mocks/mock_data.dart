@@ -1,6 +1,7 @@
 import '../models/group_detail.dart';
 import '../models/group_match_summary.dart';
 import '../models/group_member.dart';
+import '../models/group_member_match.dart';
 import '../models/group_summary.dart';
 import '../models/user_model.dart';
 
@@ -57,6 +58,23 @@ class MockData {
     GroupMember(id: 'u1', name: 'たけし', wins: 12, losses: 8, isAdmin: true),
     GroupMember(id: 'u2', name: '西やん', wins: 10, losses: 10),
     GroupMember(id: 'u3', name: 'ピンちゃん', wins: 8, losses: 4),
+  ];
+
+  static final List<GroupMemberMatch> memberMatches = [
+    GroupMemberMatch(
+      id: 'mm1',
+      matchDate: DateTime(2026, 8, 24),
+      opponentName: 'たけし',
+      scoreText: '4-6, 3-6',
+      isWin: false,
+    ),
+    GroupMemberMatch(
+      id: 'mm2',
+      matchDate: DateTime(2026, 8, 18),
+      opponentName: 'ピンちゃん',
+      scoreText: '6-4, 7-5',
+      isWin: true,
+    ),
   ];
 
   static final List<GroupMatchSummary> groupMatches = [

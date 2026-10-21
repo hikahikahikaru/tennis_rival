@@ -127,6 +127,12 @@ class AppSizes {
   static const double groupDetailBadgeVerticalPadding = 2.0;
   static const double groupDetailBadgeRadius = 999.0;
 
+  // GroupMemberStats画面で使用するサイズ
+  static const double memberStatsCardPadding = 16.0;
+  static const double memberStatsDividerThickness = 1.0;
+  static const double memberStatsBlockSpacing = 12.0;
+  static const double memberStatsLabelSpacing = 4.0;
+
   // 余白・すき間のサイズ（spacingSmall = 4.0の下に追加）
   static const double spacingMedium = 12.0;
   static const double spacingLarge = 24.0;
