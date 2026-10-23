@@ -13,6 +13,8 @@ import '../widgets/secondary_button.dart';
 import 'group_create_screen.dart';
 import 'group_detail_screen.dart';
 import 'group_join_screen.dart';
+import 'match_entry_screen.dart';
+import 'match_history_screen.dart';
 
 /// 所属グループの一覧画面。DB連携は別issueのため、現在はモックデータを表示する。
 class GroupListScreen extends StatelessWidget {
@@ -64,7 +66,23 @@ class GroupListScreen extends StatelessWidget {
     }
 
     if (label == AppStrings.navHome) {
-      Navigator.pop(context);
+      Navigator.popUntil(context, (route) => route.isFirst);
+      return;
+    }
+
+    if (label == AppStrings.navStats) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MatchHistoryScreen()),
+      );
+      return;
+    }
+
+    if (label == AppStrings.navEntry) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MatchEntryScreen()),
+      );
       return;
     }
 
