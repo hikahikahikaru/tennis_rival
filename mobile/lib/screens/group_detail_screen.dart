@@ -17,12 +17,14 @@ import 'group_member_stats_screen.dart';
 
 /// グループ詳細画面。DB連携は別issueのため、現在はモックデータを表示する。
 class GroupDetailScreen extends StatefulWidget {
+  final String? groupId;
   final GroupDetail? group;
   final List<GroupMember>? members;
   final List<GroupMatchSummary>? matches;
 
   const GroupDetailScreen({
     super.key,
+    this.groupId,
     this.group,
     this.members,
     this.matches,
@@ -35,14 +37,27 @@ class GroupDetailScreen extends StatefulWidget {
 class _GroupDetailScreenState extends State<GroupDetailScreen> {
   var _selectedTab = GroupDetailTab.members;
 
-  GroupDetail get _group => widget.group ?? MockData.groupDetail;
-  List<GroupMember> get _members => widget.members ?? MockData.groupMembers;
+  GroupDetail? get _group =>
+      widget.group ??
+      (widget.groupId == null
+          ? MockData.groupDetail
+          : MockData.groupDetailsById[widget.groupId]);
+  List<GroupMember> get _members =>
+      widget.members ??
+      (widget.groupId == null
+          ? MockData.groupMembers
+          : MockData.groupMembersById[widget.groupId] ?? const []);
   List<GroupMatchSummary> get _matches =>
-      widget.matches ?? MockData.groupMatches;
+      widget.matches ??
+      (widget.groupId == null
+          ? MockData.groupMatches
+          : MockData.groupMatchesById[widget.groupId] ?? const []);
 
   Future<void> _copyInviteCode() async {
+    final group = _group;
+    if (group == null) return;
     final messenger = ScaffoldMessenger.of(context);
-    await Clipboard.setData(ClipboardData(text: _group.inviteCode));
+    await Clipboard.setData(ClipboardData(text: group.inviteCode));
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
       const SnackBar(content: Text(AppStrings.groupInviteCodeCopied)),
@@ -50,12 +65,14 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   }
 
   void _openMemberStats(GroupMember member) {
+    final group = _group;
+    if (group == null) return;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => GroupMemberStatsScreen(
           member: member,
-          groupName: _group.name,
+          groupName: group.name,
         ),
       ),
     );
@@ -63,6 +80,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final group = _group;
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.groupDetailTitle),
@@ -72,24 +90,27 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         ),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(AppSizes.screenPadding),
-          children: [
-            GroupInfoPanel(
-              group: _group,
-              onCopyInviteCode: _copyInviteCode,
-            ),
-            const SizedBox(height: AppSizes.spacingLarge),
-            UnderlineTabBar(
-              labels: GroupDetailTab.values.map((tab) => tab.label).toList(),
-              selectedIndex: _selectedTab.index,
-              onChanged: (index) =>
-                  setState(() => _selectedTab = GroupDetailTab.values[index]),
-            ),
-            const SizedBox(height: AppSizes.spacingLarge),
-            ..._buildTabContent(),
-          ],
-        ),
+        child: group == null
+            ? const Center(child: Text(AppStrings.groupDetailNotFound))
+            : ListView(
+                padding: const EdgeInsets.all(AppSizes.screenPadding),
+                children: [
+                  GroupInfoPanel(
+                    group: group,
+                    onCopyInviteCode: _copyInviteCode,
+                  ),
+                  const SizedBox(height: AppSizes.spacingLarge),
+                  UnderlineTabBar(
+                    labels:
+                        GroupDetailTab.values.map((tab) => tab.label).toList(),
+                    selectedIndex: _selectedTab.index,
+                    onChanged: (index) => setState(
+                        () => _selectedTab = GroupDetailTab.values[index]),
+                  ),
+                  const SizedBox(height: AppSizes.spacingLarge),
+                  ..._buildTabContent(),
+                ],
+              ),
       ),
     );
   }

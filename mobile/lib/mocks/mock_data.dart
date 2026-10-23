@@ -96,6 +96,53 @@ class MockData {
     ),
   ];
 
+  static final GroupDetail tennisCircleDetail = GroupDetail(
+    id: 'group-2',
+    name: 'テニスサークル',
+    description: '平日の夜を中心に活動するテニスサークルです。',
+    createdAt: DateTime(2026, 5, 10),
+    adminName: '西やん',
+    inviteCode: 'XYZ789',
+    memberCount: tennisCircleMembers.length,
+  );
+
+  static const List<GroupMember> tennisCircleMembers = [
+    GroupMember(id: 'u2', name: '西やん', wins: 10, losses: 10, isAdmin: true),
+    GroupMember(id: 'u4', name: 'さくら', wins: 6, losses: 3),
+    GroupMember(id: 'u5', name: 'ゆうき', wins: 5, losses: 5),
+    GroupMember(id: 'u6', name: 'あおい', wins: 7, losses: 4),
+    GroupMember(id: 'u7', name: 'れん', wins: 3, losses: 6),
+    GroupMember(id: 'u8', name: 'みお', wins: 4, losses: 4),
+    GroupMember(id: 'u9', name: 'はる', wins: 9, losses: 2),
+    GroupMember(id: 'u10', name: 'そら', wins: 2, losses: 7),
+  ];
+
+  static final List<GroupMatchSummary> tennisCircleMatches = [
+    GroupMatchSummary(
+      id: 'm3',
+      matchDate: DateTime(2026, 9, 6),
+      player1Name: '西やん',
+      player2Name: 'さくら',
+      winnerName: 'さくら',
+      scoreText: '4-6, 6-7',
+    ),
+  ];
+
+  static final Map<String, GroupDetail> groupDetailsById = {
+    groupDetail.id: groupDetail,
+    tennisCircleDetail.id: tennisCircleDetail,
+  };
+
+  static final Map<String, List<GroupMember>> groupMembersById = {
+    groupDetail.id: groupMembers,
+    tennisCircleDetail.id: tennisCircleMembers,
+  };
+
+  static final Map<String, List<GroupMatchSummary>> groupMatchesById = {
+    groupDetail.id: groupMatches,
+    tennisCircleDetail.id: tennisCircleMatches,
+  };
+
   /// 「たけし」と同じグループに所属する対戦相手のモックリスト
   static const List<UserModel> opponents = [
     UserModel(

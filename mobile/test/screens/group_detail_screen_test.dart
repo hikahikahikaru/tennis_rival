@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/mocks/mock_data.dart';
 import 'package:mobile/models/group_detail.dart';
 import 'package:mobile/models/group_match_summary.dart';
 import 'package:mobile/models/group_member.dart';
@@ -240,5 +241,58 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(GroupDetailScreen), findsOneWidget);
+  });
+
+  testWidgets('selecting group A passes its ID and shows only group A data',
+      (WidgetTester tester) async {
+    await useTallViewport(tester);
+    await tester.pumpWidget(const MaterialApp(home: GroupListScreen()));
+
+    await tester.tap(find.text('週末テニス'));
+    await tester.pumpAndSettle();
+
+    final screen = tester.widget<GroupDetailScreen>(
+      find.byType(GroupDetailScreen),
+    );
+    final panel = tester.widget<GroupInfoPanel>(find.byType(GroupInfoPanel));
+    expect(screen.groupId, 'group-1');
+    expect(panel.group.id, 'group-1');
+    expect(find.text('毎週土曜日に活動するテニス仲間です。'), findsOneWidget);
+    expect(find.text('さくら'), findsNothing);
+  });
+
+  testWidgets('selecting group B passes its ID and shows only group B data',
+      (WidgetTester tester) async {
+    await useTallViewport(tester);
+    await tester.pumpWidget(const MaterialApp(home: GroupListScreen()));
+
+    await tester.tap(find.text('テニスサークル'));
+    await tester.pumpAndSettle();
+
+    final screen = tester.widget<GroupDetailScreen>(
+      find.byType(GroupDetailScreen),
+    );
+    final panel = tester.widget<GroupInfoPanel>(find.byType(GroupInfoPanel));
+    expect(screen.groupId, 'group-2');
+    expect(panel.group.id, 'group-2');
+    expect(find.text('平日の夜を中心に活動するテニスサークルです。'), findsOneWidget);
+    expect(find.text('さくら'), findsOneWidget);
+    expect(find.text('ピンちゃん'), findsNothing);
+
+    await tester.tap(find.widgetWithText(InkWell, '戦績'));
+    await tester.pump();
+    expect(find.text('西やん vs さくら'), findsOneWidget);
+    expect(find.text('たけし vs 西やん'), findsNothing);
+  });
+
+  testWidgets('unknown group ID shows an error without fallback data',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: GroupDetailScreen(groupId: 'unknown-group')),
+    );
+
+    expect(find.text('グループ情報が見つかりません'), findsOneWidget);
+    expect(find.text(MockData.groups.first.name), findsNothing);
+    expect(find.byType(GroupInfoPanel), findsNothing);
   });
 }
