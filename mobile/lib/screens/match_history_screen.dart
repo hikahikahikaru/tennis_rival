@@ -17,6 +17,7 @@ import '../widgets/match_calendar.dart';
 import '../widgets/match_card.dart';
 import '../widgets/match_detail_sheet.dart';
 import '../widgets/stats_card.dart';
+import 'group_list_screen.dart';
 import 'match_entry_screen.dart';
 
 /// 月別履歴の取得状態と、表示月・選択日を管理する戦績画面。
@@ -217,6 +218,14 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
 
     if (selectedItem.label == AppStrings.navEntry) {
       _openMatchEntryScreen();
+      return;
+    }
+
+    if (selectedItem.label == AppStrings.navGroup) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const GroupListScreen()),
+      );
       return;
     }
 

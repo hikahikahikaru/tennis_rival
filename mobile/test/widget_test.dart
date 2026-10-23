@@ -8,6 +8,7 @@ import 'package:mobile/models/match_history_item.dart';
 import 'package:mobile/models/match_history_query.dart';
 import 'package:mobile/repositories/match_history_repository.dart';
 import 'package:mobile/repositories/match_memo_repository.dart';
+import 'package:mobile/screens/group_list_screen.dart';
 import 'package:mobile/screens/home_screen.dart';
 import 'package:mobile/screens/match_entry_screen.dart';
 import 'package:mobile/screens/match_history_screen.dart';
@@ -353,6 +354,117 @@ void main() {
     );
   });
 
+  testWidgets('switches home group stats home without growing the route stack',
+      (WidgetTester tester) async {
+    await pumpHome(tester);
+
+    await tester.tap(find.text('グループ'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GroupListScreen), findsOneWidget);
+    expect(
+      tester
+          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
+          .currentIndex,
+      3,
+    );
+
+    final groupScreen = tester.element(find.byType(GroupListScreen));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(BottomNavigationBar),
+        matching: find.text('グループ'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.element(find.byType(GroupListScreen)), same(groupScreen));
+
+    await tester.tap(find.text('戦績'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MatchHistoryScreen), findsOneWidget);
+    expect(find.byType(GroupListScreen), findsNothing);
+    expect(
+      tester
+          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
+          .currentIndex,
+      1,
+    );
+
+    await tester.tap(find.text('ホーム'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.byType(MatchHistoryScreen), findsNothing);
+    expect(
+      tester
+          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
+          .currentIndex,
+      0,
+    );
+    expect(
+        Navigator.of(tester.element(find.byType(HomeScreen))).canPop(), false);
+  });
+
+  testWidgets('opens match entry from group without retaining group route',
+      (WidgetTester tester) async {
+    await pumpHome(tester);
+
+    await tester.tap(find.text('グループ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('登録'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MatchEntryScreen), findsOneWidget);
+    expect(find.byType(GroupListScreen), findsNothing);
+
+    Navigator.of(tester.element(find.byType(MatchEntryScreen))).pop();
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeScreen), findsOneWidget);
+  });
+
+  testWidgets('switches group stats group without growing the route stack',
+      (WidgetTester tester) async {
+    await pumpHome(tester);
+
+    await tester.tap(find.text('グループ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('戦績'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('グループ'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GroupListScreen), findsOneWidget);
+    expect(find.byType(MatchHistoryScreen), findsNothing);
+    expect(
+      tester
+          .widget<BottomNavigationBar>(find.byType(BottomNavigationBar))
+          .currentIndex,
+      3,
+    );
+
+    Navigator.of(tester.element(find.byType(GroupListScreen))).pop();
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(
+        Navigator.of(tester.element(find.byType(HomeScreen))).canPop(), false);
+  });
+
+  testWidgets('returns directly from group to the root home screen',
+      (WidgetTester tester) async {
+    await pumpHome(tester);
+
+    await tester.tap(find.text('グループ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ホーム'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.byType(GroupListScreen), findsNothing);
+    expect(
+        Navigator.of(tester.element(find.byType(HomeScreen))).canPop(), false);
+  });
+
   testWidgets('shows SnackBar guidance for unimplemented home actions',
       (WidgetTester tester) async {
     await pumpHome(tester);
@@ -366,7 +478,7 @@ void main() {
     await tester.pump();
     expect(find.text('確認待ち画面は未実装です'), findsOneWidget);
 
-    await tester.tap(find.text('グループ'));
+    await tester.tap(find.text('マイページ'));
     await tester.pump();
     expect(find.text('この機能は未実装です'), findsOneWidget);
   });
