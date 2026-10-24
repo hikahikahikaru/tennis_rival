@@ -156,6 +156,7 @@ class AppStrings {
   static const String groupInfoCollapseTooltip = 'グループ情報を折りたたむ';
   static const String groupMemberListEmpty = 'メンバーはまだいません';
   static const String groupMatchListEmpty = 'グループ内の試合はまだありません';
+  static const String groupDetailNotFound = 'グループ情報が見つかりません';
   static String groupMemberSectionCount(int count) => '$count人';
   static String groupMatchSectionCount(int count) => '$count件';
   static String groupCreatedDate(String date) => '作成日：$date';

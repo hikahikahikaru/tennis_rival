@@ -44,10 +44,12 @@ class GroupListScreen extends StatelessWidget {
     );
   }
 
-  void _openGroupDetailScreen(BuildContext context) {
+  void _openGroupDetailScreen(BuildContext context, String groupId) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const GroupDetailScreen()),
+      MaterialPageRoute(
+        builder: (context) => GroupDetailScreen(groupId: groupId),
+      ),
     );
   }
 
@@ -144,7 +146,7 @@ class GroupListScreen extends StatelessWidget {
           const SizedBox(height: AppSizes.spacingMedium),
       itemBuilder: (context, index) => GroupCard(
         group: groups[index],
-        onTap: () => _openGroupDetailScreen(context),
+        onTap: () => _openGroupDetailScreen(context, groups[index].id),
       ),
     );
   }
