@@ -235,7 +235,9 @@ void main() {
 
   testWidgets('GroupListScreen opens detail screen from group card',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: GroupListScreen()));
+    await tester.pumpWidget(
+      const MaterialApp(home: GroupListScreen(groups: MockData.groups)),
+    );
 
     await tester.tap(find.text('週末テニス'));
     await tester.pumpAndSettle();
@@ -246,7 +248,9 @@ void main() {
   testWidgets('selecting group A passes its ID and shows only group A data',
       (WidgetTester tester) async {
     await useTallViewport(tester);
-    await tester.pumpWidget(const MaterialApp(home: GroupListScreen()));
+    await tester.pumpWidget(
+      const MaterialApp(home: GroupListScreen(groups: MockData.groups)),
+    );
 
     await tester.tap(find.text('週末テニス'));
     await tester.pumpAndSettle();
@@ -264,7 +268,9 @@ void main() {
   testWidgets('selecting group B passes its ID and shows only group B data',
       (WidgetTester tester) async {
     await useTallViewport(tester);
-    await tester.pumpWidget(const MaterialApp(home: GroupListScreen()));
+    await tester.pumpWidget(
+      const MaterialApp(home: GroupListScreen(groups: MockData.groups)),
+    );
 
     await tester.tap(find.text('テニスサークル'));
     await tester.pumpAndSettle();

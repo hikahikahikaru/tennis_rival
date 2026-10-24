@@ -8,7 +8,7 @@ INSERT INTO auth.users (id) VALUES
 -- 2. グループを作成
 INSERT INTO public.groups (group_id, group_name, group_password) VALUES
   ('99999999-9999-9999-9999-999999999999', '週末テニスサークル', 'secret123'),
-  ('88888888-8888-8888-8888-888888888888', '平日ナイターサークル', 'secret123');
+  ('88888888-8888-8888-8888-888888888888', '平日ナイターサークル', 'night456');
 
 -- 3. アプリ用ユーザー情報を登録 (group_id を削除)
 INSERT INTO public.users (user_id, user_name) VALUES

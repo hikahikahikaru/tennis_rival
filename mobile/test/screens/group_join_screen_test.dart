@@ -80,7 +80,9 @@ void main() {
 
   testWidgets('GroupListScreen opens join screen from join button',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: GroupListScreen()));
+    await tester.pumpWidget(
+      const MaterialApp(home: GroupListScreen(groups: [])),
+    );
 
     await tester.tap(find.text('グループに参加'));
     await tester.pumpAndSettle();

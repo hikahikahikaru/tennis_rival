@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
+import '../repositories/group_repository.dart';
+import '../services/group_service.dart';
 import '../widgets/labeled_text_field.dart';
 import '../widgets/primary_button.dart';
 
-/// グループ作成画面。DB連携は別issueのため、現在は入力と必須チェックのみ行う。
+/// グループの入力と作成処理の状態を管理する画面。
 class GroupCreateScreen extends StatefulWidget {
-  const GroupCreateScreen({super.key});
+  final GroupService? groupService;
+
+  const GroupCreateScreen({super.key, this.groupService});
 
   @override
   State<GroupCreateScreen> createState() => _GroupCreateScreenState();
@@ -18,6 +22,11 @@ class _GroupCreateScreenState extends State<GroupCreateScreen> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   var _showNameError = false;
+  var _isSaving = false;
+  String? _saveError;
+
+  GroupService get _groupService =>
+      widget.groupService ?? GroupService.instance;
 
   @override
   void dispose() {
@@ -26,19 +35,39 @@ class _GroupCreateScreenState extends State<GroupCreateScreen> {
     super.dispose();
   }
 
-  void _handleCreatePressed() {
+  Future<void> _handleCreatePressed() async {
+    if (_isSaving) return;
     final isNameEmpty = _nameController.text.trim().isEmpty;
-    setState(() => _showNameError = isNameEmpty);
+    setState(() {
+      _showNameError = isNameEmpty;
+      _saveError = null;
+    });
     if (isNameEmpty) {
       return;
     }
 
-    // 作成処理は別issueで実装する。
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      const SnackBar(content: Text(AppStrings.groupCreateUnavailable)),
-    );
+    setState(() => _isSaving = true);
+    try {
+      final description = _descriptionController.text.trim();
+      final groupId = await _groupService.createGroup(
+        name: _nameController.text.trim(),
+        description: description.isEmpty ? null : description,
+      );
+      if (!mounted) return;
+      Navigator.pop(context, groupId);
+    } on GroupAuthenticationRequiredException {
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+        _saveError = AppStrings.groupAuthenticationRequired;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+        _saveError = AppStrings.groupCreateFailed;
+      });
+    }
   }
 
   @override
@@ -89,14 +118,26 @@ class _GroupCreateScreenState extends State<GroupCreateScreen> {
                         AppStrings.groupCreateNote,
                         style: AppTextStyles.groupCreateNote,
                       ),
+                      if (_saveError != null) ...[
+                        const SizedBox(height: AppSizes.spacingMedium),
+                        Text(
+                          _saveError!,
+                          style: AppTextStyles.groupFormError,
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: AppSizes.spacingMedium),
-              PrimaryButton(
-                label: AppStrings.groupCreateTitle,
-                onPressed: _handleCreatePressed,
+              AbsorbPointer(
+                absorbing: _isSaving,
+                child: PrimaryButton(
+                  label: _isSaving
+                      ? AppStrings.groupCreating
+                      : AppStrings.groupCreateTitle,
+                  onPressed: _handleCreatePressed,
+                ),
               ),
             ],
           ),
