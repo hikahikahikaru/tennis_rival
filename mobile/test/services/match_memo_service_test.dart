@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/models/match_history_item.dart';
+import 'package:mobile/models/match_history_query.dart';
 import 'package:mobile/repositories/match_history_repository.dart';
 import 'package:mobile/repositories/match_memo_repository.dart';
 import 'package:mobile/services/match_history_service.dart';
