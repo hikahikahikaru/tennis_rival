@@ -4,8 +4,8 @@ import '../constants/app_nav_items.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
-import '../mocks/mock_data.dart';
 import '../models/group_summary.dart';
+import '../services/group_service.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/group_card.dart';
 import '../widgets/primary_button.dart';
@@ -16,14 +16,39 @@ import 'group_join_screen.dart';
 import 'match_entry_screen.dart';
 import 'match_history_screen.dart';
 
-/// 所属グループの一覧画面。DB連携は別issueのため、現在はモックデータを表示する。
-class GroupListScreen extends StatelessWidget {
-  final List<GroupSummary> groups;
+/// 所属グループを取得し、各グループへの操作を提供する一覧画面。
+class GroupListScreen extends StatefulWidget {
+  final List<GroupSummary>? groups;
+  final GroupService? groupService;
 
   const GroupListScreen({
     super.key,
-    this.groups = MockData.groups,
+    this.groups,
+    this.groupService,
   });
+
+  @override
+  State<GroupListScreen> createState() => _GroupListScreenState();
+}
+
+class _GroupListScreenState extends State<GroupListScreen> {
+  late final GroupService _groupService;
+  List<GroupSummary> _groups = const [];
+  var _isLoading = false;
+  var _hasLoadError = false;
+  var _loadRequestId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _groupService = widget.groupService ?? GroupService.instance;
+    final injectedGroups = widget.groups;
+    if (injectedGroups != null) {
+      _groups = injectedGroups;
+    } else {
+      _loadGroups();
+    }
+  }
 
   int get _groupNavIndex {
     return appNavItems.indexWhere((item) => item.label == AppStrings.navGroup);
@@ -37,11 +62,39 @@ class GroupListScreen extends StatelessWidget {
     );
   }
 
-  void _openGroupCreateScreen(BuildContext context) {
-    Navigator.push(
+  Future<void> _openGroupCreateScreen(BuildContext context) async {
+    final createdGroupId = await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (context) => const GroupCreateScreen()),
+      MaterialPageRoute(
+        builder: (context) => GroupCreateScreen(groupService: _groupService),
+      ),
     );
+    if (!mounted || createdGroupId == null) return;
+    await _loadGroups(forceRefresh: true);
+  }
+
+  Future<void> _loadGroups({bool forceRefresh = false}) async {
+    final requestId = ++_loadRequestId;
+    setState(() {
+      _isLoading = true;
+      _hasLoadError = false;
+    });
+    try {
+      final groups = await _groupService.loadGroups(
+        forceRefresh: forceRefresh,
+      );
+      if (!mounted || requestId != _loadRequestId) return;
+      setState(() {
+        _groups = groups;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted || requestId != _loadRequestId) return;
+      setState(() {
+        _isLoading = false;
+        _hasLoadError = true;
+      });
+    }
   }
 
   void _openGroupDetailScreen(BuildContext context, String groupId) {
@@ -136,17 +189,46 @@ class GroupListScreen extends StatelessWidget {
   }
 
   Widget _buildGroupList() {
-    if (groups.isEmpty) {
+    if (_isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: AppSizes.spacingMedium),
+            Text(AppStrings.groupListLoading),
+          ],
+        ),
+      );
+    }
+
+    if (_hasLoadError) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(AppStrings.groupListFetchFailed),
+            const SizedBox(height: AppSizes.spacingMedium),
+            TextButton(
+              onPressed: () => _loadGroups(forceRefresh: true),
+              child: const Text(AppStrings.retry),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_groups.isEmpty) {
       return const Center(child: Text(AppStrings.groupListEmpty));
     }
 
     return ListView.separated(
-      itemCount: groups.length,
+      itemCount: _groups.length,
       separatorBuilder: (context, index) =>
           const SizedBox(height: AppSizes.spacingMedium),
       itemBuilder: (context, index) => GroupCard(
-        group: groups[index],
-        onTap: () => _openGroupDetailScreen(context, groups[index].id),
+        group: _groups[index],
+        onTap: () => _openGroupDetailScreen(context, _groups[index].id),
       ),
     );
   }

@@ -74,6 +74,8 @@ class AppStrings {
   static const String groupListTitle = 'グループ';
   static const String groupListSectionTitle = '所属グループ';
   static const String groupListEmpty = '所属しているグループはまだありません';
+  static const String groupListLoading = 'グループを読み込み中です';
+  static const String groupListFetchFailed = 'グループの取得に失敗しました';
   static const String groupCreate = 'グループ作成';
   static const String groupJoin = 'グループに参加';
   static const String groupUnavailable = 'この機能は未実装です';
@@ -128,7 +130,9 @@ class AppStrings {
   static const String groupDescriptionLabel = 'グループの説明（任意）';
   static const String groupDescriptionHint = '例：毎週土曜日に活動するテニス仲間';
   static const String groupCreateNote = '作成後、メンバーを招待できます。';
-  static const String groupCreateUnavailable = 'グループ作成は未実装です';
+  static const String groupCreating = '作成中...';
+  static const String groupCreateFailed = 'グループの作成に失敗しました';
+  static const String groupAuthenticationRequired = 'ログインが必要です';
   static const String requiredMark = '※';
 
   // GroupJoinScreen

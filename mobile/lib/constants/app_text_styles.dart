@@ -254,6 +254,11 @@ class AppTextStyles {
     color: AppColors.textSecondary,
   );
 
+  static const TextStyle groupFormError = TextStyle(
+    fontSize: 14,
+    color: AppColors.requiredMark,
+  );
+
   // InfoBox \u7528\u306e\u30c6\u30ad\u30b9\u30c8\u30b9\u30bf\u30a4\u30eb
   static const TextStyle infoBoxTitle = TextStyle(
     fontSize: 14,
