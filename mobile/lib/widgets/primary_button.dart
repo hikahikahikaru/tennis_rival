@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// 全幅で使えるプライマリーボタン（見た目は AppTheme の elevatedButtonTheme に従う）
 class PrimaryButton extends StatelessWidget {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final IconData? icon;
   final double? height;
 
