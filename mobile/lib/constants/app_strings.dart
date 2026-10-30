@@ -38,6 +38,22 @@ class AppStrings {
   static const String signUpPasswordShow = 'パスワードを表示';
   static const String signUpPasswordHide = 'パスワードを非表示';
   static const String signUpLoginPrompt = 'すでにアカウントをお持ちの方はこちら';
+  // アカウント登録で使用
+  static const String accountRegistrationInputInvalid = '入力内容を確認してください';
+  static const String accountDisplayNameRequired = '表示名を入力してください';
+  static const String accountEmailRequired = 'メールアドレスを入力してください';
+  static const String accountEmailInvalid = 'メールアドレスの形式が正しくありません';
+  static const String accountPasswordTooShort = 'パスワードは8文字以上で入力してください';
+  static const String accountPasswordMismatch = 'パスワードが一致しません';
+  static const String accountRegistrationConfirmationPending =
+      '登録手続きを受け付けました。確認メールが届いた場合は、メール内のリンクから登録を完了してください。';
+  static const String accountRegistrationCompleted = 'アカウント登録が完了しました';
+  static const String accountRegistrationFailed =
+      'アカウントを登録できませんでした。入力内容を確認してください';
+  static const String accountRegistrationNetworkError =
+      '通信に失敗しました。通信環境を確認してもう一度お試しください';
+  static const String accountRegistrationUnexpectedError =
+      'アカウント登録中にエラーが発生しました';
   // ホーム画面で使用
   static const String recordMatch = '試合結果を記録';
   static const String homeGreeting = 'こんにちは、たけしさん';
