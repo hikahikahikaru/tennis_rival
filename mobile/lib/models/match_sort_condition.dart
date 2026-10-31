@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../constants/app_strings.dart';
 
 /// 試合の勝敗による絞り込み種別。
@@ -37,25 +35,30 @@ class MatchSortCondition {
   final MatchResultFilter result;
   final MatchDateOrder order;
 
-  /// 試合日の期間（両端を含む）。nullの場合は期間指定なし。
-  final DateTimeRange? period;
+  /// 試合日の期間（両端を含む）。nullの側は無制限。
+  final DateTime? from;
+  final DateTime? to;
 
   const MatchSortCondition({
     this.result = MatchResultFilter.all,
     this.order = MatchDateOrder.newestFirst,
-    this.period,
+    this.from,
+    this.to,
   });
 
   MatchSortCondition copyWith({
     MatchResultFilter? result,
     MatchDateOrder? order,
-    DateTimeRange? period,
-    bool clearPeriod = false,
+    DateTime? from,
+    DateTime? to,
+    bool clearFrom = false,
+    bool clearTo = false,
   }) {
     return MatchSortCondition(
       result: result ?? this.result,
       order: order ?? this.order,
-      period: clearPeriod ? null : (period ?? this.period),
+      from: clearFrom ? null : (from ?? this.from),
+      to: clearTo ? null : (to ?? this.to),
     );
   }
 
@@ -65,13 +68,12 @@ class MatchSortCondition {
     required bool Function(T item) isWinOf,
   }) {
     DateTime dayOf(DateTime d) => DateTime(d.year, d.month, d.day);
-    final range = period;
     final filtered = items.where((item) {
       if (!result.includes(isWinOf(item))) return false;
-      if (range == null) return true;
       final day = dayOf(dateOf(item));
-      return !day.isBefore(dayOf(range.start)) &&
-          !day.isAfter(dayOf(range.end));
+      if (from != null && day.isBefore(dayOf(from!))) return false;
+      if (to != null && day.isAfter(dayOf(to!))) return false;
+      return true;
     }).toList();
     filtered.sort((a, b) {
       final compared = dateOf(a).compareTo(dateOf(b));

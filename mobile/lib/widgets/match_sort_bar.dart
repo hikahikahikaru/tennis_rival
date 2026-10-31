@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../models/match_sort_condition.dart';
+import 'match_period_dialog.dart';
 
 /// 勝敗・試合日の並び順・期間を選択する、試合一覧用の再利用可能な並び替えバー。
 class MatchSortBar extends StatelessWidget {
@@ -15,22 +16,29 @@ class MatchSortBar extends StatelessWidget {
     required this.onChanged,
   });
 
-  static String _formatDate(DateTime d) => '${d.year}/${d.month}/${d.day}';
+  static String? _formatOrNull(DateTime? d) =>
+      d == null ? null : MatchPeriodDialog.format(d);
 
-  Future<void> _pickPeriod(BuildContext context) async {
-    final now = DateTime.now();
-    final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(AppSizes.matchSortPeriodFirstYear),
-      lastDate: DateTime(now.year + 1, 12, 31),
-      initialDateRange: condition.period,
+  Future<void> _editPeriod(BuildContext context) async {
+    final result = await MatchPeriodDialog.show(
+      context,
+      from: condition.from,
+      to: condition.to,
     );
-    if (picked != null) onChanged(condition.copyWith(period: picked));
+    if (result == null) return;
+    onChanged(
+      condition.copyWith(
+        from: result.from,
+        to: result.to,
+        clearFrom: result.from == null,
+        clearTo: result.to == null,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final period = condition.period;
+    final hasPeriod = condition.from != null || condition.to != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,18 +71,22 @@ class MatchSortBar extends StatelessWidget {
             OutlinedButton.icon(
               icon: const Icon(Icons.date_range),
               label: Text(
-                period == null
-                    ? AppStrings.matchSortPeriodSelect
-                    : '${_formatDate(period.start)} - ${_formatDate(period.end)}',
+                hasPeriod
+                    ? AppStrings.matchSortPeriodText(
+                        _formatOrNull(condition.from),
+                        _formatOrNull(condition.to),
+                      )
+                    : AppStrings.matchSortPeriodSelect,
               ),
-              onPressed: () => _pickPeriod(context),
+              onPressed: () => _editPeriod(context),
             ),
-            if (period != null)
+            if (hasPeriod)
               IconButton(
                 tooltip: AppStrings.matchSortPeriodClear,
                 icon: const Icon(Icons.close),
-                onPressed: () =>
-                    onChanged(condition.copyWith(clearPeriod: true)),
+                onPressed: () => onChanged(
+                  condition.copyWith(clearFrom: true, clearTo: true),
+                ),
               ),
           ],
         ),

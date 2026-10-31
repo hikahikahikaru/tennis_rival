@@ -69,10 +69,8 @@ void main() {
     expect(
       ids(
         MatchSortCondition(
-          period: DateTimeRange(
-            start: DateTime(2026, 8, 18),
-            end: DateTime(2026, 8, 20),
-          ),
+          from: DateTime(2026, 8, 18),
+          to: DateTime(2026, 8, 20),
         ),
       ),
       ['b'],

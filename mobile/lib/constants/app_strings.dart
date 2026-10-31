@@ -239,7 +239,20 @@ class AppStrings {
   static const String matchSortOrderNewest = '新しい順';
   static const String matchSortOrderOldest = '古い順';
   static const String matchSortPeriodSelect = '期間を指定';
+  static const String matchSortPeriodFrom = '開始日';
+  static const String matchSortPeriodTo = '終了日';
   static const String matchSortPeriodClear = '期間指定を解除';
+  static String matchSortPeriodText(String? from, String? to) =>
+      '${from ?? ''} ～ ${to ?? ''}';
+
+  // MatchPeriodDialog
+  static const String matchPeriodTitle = '期間を指定';
+  static const String matchPeriodHint = 'yyyyMMdd';
+  static const String matchPeriodCalendar = 'カレンダーから選択';
+  static const String matchPeriodInvalidDate = '日付をyyyyMMddの8桁で入力してください';
+  static const String matchPeriodReversed = '終了日は開始日以降にしてください';
+  static const String matchPeriodCancel = 'キャンセル';
+  static const String matchPeriodApply = '適用';
 
   // エラー・ログ用メッセージ
   static String errorOpponentFetch(Object error) =>
