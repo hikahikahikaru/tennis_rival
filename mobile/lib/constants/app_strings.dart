@@ -41,7 +41,7 @@ class AppStrings {
 
   // LoginScreen
   static const String loginTitle = 'ログイン';
-  static const String loginDescription = '登録したメールアドレスとパスワードを入力してください';
+  static const String loginDescription = 'メールアドレスとパスワードを入力してください';
   static const String loginEmailLabel = 'メールアドレス';
   static const String loginEmailHint = '例：name@example.com';
   static const String loginPasswordLabel = 'パスワード';
