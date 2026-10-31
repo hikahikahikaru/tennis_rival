@@ -6,10 +6,10 @@ import '../constants/app_text_styles.dart';
 import '../mocks/mock_data.dart';
 import '../models/group_member.dart';
 import '../models/group_member_match.dart';
-import '../models/member_match_filter.dart';
-import '../widgets/member_match_card.dart';
+import '../models/match_sort_condition.dart';
+import '../widgets/match_card.dart';
+import '../widgets/match_sort_bar.dart';
 import '../widgets/member_stats_summary_card.dart';
-import '../widgets/underline_tab_bar.dart';
 
 /// グループメンバーの戦績画面。DB連携は別issueのため、現在はモックデータを表示する。
 class GroupMemberStatsScreen extends StatefulWidget {
@@ -29,11 +29,15 @@ class GroupMemberStatsScreen extends StatefulWidget {
 }
 
 class _GroupMemberStatsScreenState extends State<GroupMemberStatsScreen> {
-  var _selectedFilter = MemberMatchFilter.all;
+  var _condition = const MatchSortCondition();
 
   List<GroupMemberMatch> get _filteredMatches {
     final matches = widget.matches ?? MockData.memberMatches;
-    return matches.where(_selectedFilter.includes).toList();
+    return _condition.apply(
+      matches,
+      dateOf: (m) => m.matchDate,
+      isWinOf: (m) => m.isWin,
+    );
   }
 
   @override
@@ -57,14 +61,6 @@ class _GroupMemberStatsScreenState extends State<GroupMemberStatsScreen> {
               groupName: widget.groupName ?? MockData.groupDetail.name,
             ),
             const SizedBox(height: AppSizes.spacingLarge),
-            UnderlineTabBar(
-              labels: MemberMatchFilter.values.map((tab) => tab.label).toList(),
-              selectedIndex: _selectedFilter.index,
-              onChanged: (index) => setState(
-                () => _selectedFilter = MemberMatchFilter.values[index],
-              ),
-            ),
-            const SizedBox(height: AppSizes.spacingLarge),
             Row(
               children: [
                 const Expanded(
@@ -80,10 +76,20 @@ class _GroupMemberStatsScreenState extends State<GroupMemberStatsScreen> {
               ],
             ),
             const SizedBox(height: AppSizes.spacingMedium),
+            MatchSortBar(
+              condition: _condition,
+              onChanged: (value) => setState(() => _condition = value),
+            ),
+            const SizedBox(height: AppSizes.spacingMedium),
             if (matches.isEmpty)
               const Center(child: Text(AppStrings.memberStatsMatchListEmpty)),
             for (final match in matches) ...[
-              MemberMatchCard(match: match),
+              MatchCard(
+                date: match.dateText,
+                opponentName: match.opponentName,
+                score: match.scoreText,
+                isWin: match.isWin,
+              ),
               const SizedBox(height: AppSizes.spacingMedium),
             ],
           ],

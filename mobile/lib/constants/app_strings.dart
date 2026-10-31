@@ -228,15 +228,18 @@ class AppStrings {
   static const String memberStatsWinRateLabel = '勝率';
   static String memberStatsWins(int wins) => '$wins勝';
   static String memberStatsLosses(int losses) => '$losses敗';
-  static const String memberStatsTabAll = '全試合';
-  static const String memberStatsTabWins = '勝ち試合';
-  static const String memberStatsTabLosses = '負け試合';
   static const String memberStatsMatchListTitle = '試合一覧';
   static const String memberStatsMatchListEmpty = '該当する試合はありません';
-  static const String memberStatsBadgeWin = '勝ち';
-  static const String memberStatsBadgeLose = '負け';
   static String memberStatsSectionCount(int count) => '全$count試合';
-  static String memberStatsVersus(String opponent) => 'vs $opponent';
+
+  // MatchSortBar
+  static const String matchSortResultAll = 'すべて';
+  static const String matchSortResultWins = '勝った試合';
+  static const String matchSortResultLosses = '負けた試合';
+  static const String matchSortOrderNewest = '新しい順';
+  static const String matchSortOrderOldest = '古い順';
+  static const String matchSortPeriodSelect = '期間を指定';
+  static const String matchSortPeriodClear = '期間指定を解除';
 
   // エラー・ログ用メッセージ
   static String errorOpponentFetch(Object error) =>
