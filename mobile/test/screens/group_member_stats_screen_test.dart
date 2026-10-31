@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/models/group_member.dart';
 import 'package:mobile/models/group_member_match.dart';
-import 'package:mobile/models/member_match_filter.dart';
+import 'package:mobile/models/match_sort_condition.dart';
 import 'package:mobile/screens/group_detail_screen.dart';
 import 'package:mobile/screens/group_member_stats_screen.dart';
 import 'package:mobile/widgets/group_member_card.dart';
-import 'package:mobile/widgets/member_match_card.dart';
+import 'package:mobile/widgets/match_card.dart';
 import 'package:mobile/widgets/member_stats_summary_card.dart';
 
 void main() {
@@ -39,15 +39,41 @@ void main() {
     expect(matches.first.dateText, '2026年8月24日');
   });
 
-  test('MemberMatchFilter includes matches by result', () {
-    expect(matches.where(MemberMatchFilter.all.includes), hasLength(2));
+  test('MatchSortCondition filters by result', () {
+    List<String> ids(MatchSortCondition c) => c
+        .apply(matches, dateOf: (m) => m.matchDate, isWinOf: (m) => m.isWin)
+        .map((m) => m.id)
+        .toList();
+
+    expect(ids(const MatchSortCondition()), ['a', 'b']);
     expect(
-      matches.where(MemberMatchFilter.wins.includes).map((m) => m.id),
+      ids(const MatchSortCondition(result: MatchResultFilter.wins)),
       ['b'],
     );
     expect(
-      matches.where(MemberMatchFilter.losses.includes).map((m) => m.id),
+      ids(const MatchSortCondition(result: MatchResultFilter.losses)),
       ['a'],
+    );
+  });
+
+  test('MatchSortCondition sorts by date and filters by period', () {
+    List<String> ids(MatchSortCondition c) => c
+        .apply(matches, dateOf: (m) => m.matchDate, isWinOf: (m) => m.isWin)
+        .map((m) => m.id)
+        .toList();
+
+    expect(
+      ids(const MatchSortCondition(order: MatchDateOrder.oldestFirst)),
+      ['b', 'a'],
+    );
+    expect(
+      ids(
+        MatchSortCondition(
+          from: DateTime(2026, 8, 18),
+          to: DateTime(2026, 8, 20),
+        ),
+      ),
+      ['b'],
     );
   });
 
@@ -64,24 +90,6 @@ void main() {
     expect(find.text('50%'), findsOneWidget);
   });
 
-  testWidgets('MemberMatchCard shows win and lose badges', (tester) async {
-    await tester.pumpWidget(
-      wrap(
-        Column(
-          children: [
-            MemberMatchCard(match: matches[0]),
-            MemberMatchCard(match: matches[1]),
-          ],
-        ),
-      ),
-    );
-
-    expect(find.text('vs たけし'), findsOneWidget);
-    expect(find.text('4-6, 3-6'), findsOneWidget);
-    expect(find.text('負け'), findsOneWidget);
-    expect(find.text('勝ち'), findsOneWidget);
-  });
-
   testWidgets('GroupMemberCard calls onTap', (tester) async {
     var tapped = 0;
     await tester.pumpWidget(
@@ -94,6 +102,14 @@ void main() {
   });
 
   group('GroupMemberStatsScreen', () {
+    setUp(() {
+      final binding = TestWidgetsFlutterBinding.ensureInitialized();
+      binding.platformDispatcher.views.first
+        ..physicalSize = const Size(800, 2400)
+        ..devicePixelRatio = 1.0;
+      addTearDown(binding.platformDispatcher.views.first.resetPhysicalSize);
+    });
+
     Widget buildSubject({List<GroupMemberMatch>? list}) => MaterialApp(
           home: GroupMemberStatsScreen(
             member: member,
@@ -106,23 +122,34 @@ void main() {
       await tester.pumpWidget(buildSubject());
 
       expect(find.text('西やんの戦績'), findsOneWidget);
-      expect(find.byType(MemberMatchCard), findsNWidgets(2));
+      expect(find.byType(MatchCard), findsNWidgets(2));
       expect(find.text('全2試合'), findsOneWidget);
     });
 
-    testWidgets('filters wins and losses by tab', (tester) async {
+    testWidgets('filters wins and losses by chip', (tester) async {
       await tester.pumpWidget(buildSubject());
 
-      await tester.tap(find.widgetWithText(InkWell, '勝ち試合'));
+      await tester.tap(find.widgetWithText(ChoiceChip, '勝った試合'));
       await tester.pump();
-      expect(find.byType(MemberMatchCard), findsOneWidget);
+      expect(find.byType(MatchCard), findsOneWidget);
       expect(find.text('vs ピンちゃん'), findsOneWidget);
       expect(find.text('全1試合'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(InkWell, '負け試合'));
+      await tester.tap(find.widgetWithText(ChoiceChip, '負けた試合'));
       await tester.pump();
-      expect(find.byType(MemberMatchCard), findsOneWidget);
+      expect(find.byType(MatchCard), findsOneWidget);
       expect(find.text('vs たけし'), findsOneWidget);
+    });
+
+    testWidgets('sorts by date order', (tester) async {
+      await tester.pumpWidget(buildSubject());
+
+      await tester.tap(find.widgetWithText(ChoiceChip, '古い順'));
+      await tester.pump();
+
+      final first = tester.getTopLeft(find.text('vs ピンちゃん'));
+      final second = tester.getTopLeft(find.text('vs たけし'));
+      expect(first.dy, lessThan(second.dy));
     });
 
     testWidgets('shows empty message when no matches', (tester) async {
