@@ -38,6 +38,25 @@ class AppStrings {
   static const String signUpPasswordShow = 'パスワードを表示';
   static const String signUpPasswordHide = 'パスワードを非表示';
   static const String signUpLoginPrompt = 'すでにアカウントをお持ちの方はこちら';
+
+  // LoginScreen
+  static const String loginTitle = 'ログイン';
+  static const String loginDescription = '登録したメールアドレスとパスワードを入力してください';
+  static const String loginEmailLabel = 'メールアドレス';
+  static const String loginEmailHint = '例：name@example.com';
+  static const String loginPasswordLabel = 'パスワード';
+  static const String loginPasswordHint = 'パスワードを入力';
+  static const String loginEmailRequired = 'メールアドレスを入力してください';
+  static const String loginEmailInvalid = 'メールアドレスの形式が正しくありません';
+  static const String loginPasswordRequired = 'パスワードを入力してください';
+  static const String loginSubmit = 'ログインする';
+  static const String loginSubmitting = 'ログイン中...';
+  static const String loginCompleted = 'ログインしました';
+  static const String loginFailed = 'メールアドレスまたはパスワードを確認してください';
+  static const String loginNetworkError = '通信に失敗しました。通信環境を確認してもう一度お試しください';
+  static const String loginPasswordShow = 'パスワードを表示';
+  static const String loginPasswordHide = 'パスワードを非表示';
+  static const String loginSignUpPrompt = '新規アカウント登録はこちら';
   // アカウント登録で使用
   static const String accountRegistrationInputInvalid = '入力内容を確認してください';
   static const String accountDisplayNameRequired = '表示名を入力してください';
