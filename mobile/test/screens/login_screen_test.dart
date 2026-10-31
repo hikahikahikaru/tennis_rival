@@ -148,6 +148,59 @@ void main() {
     expect(find.text('ログインしました'), findsOneWidget);
   });
 
+  testWidgets('ログイン成功時だけ親Widgetへ一度通知する', (tester) async {
+    var submitCallCount = 0;
+    var successCallCount = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: LoginScreen(
+          onSubmit: ({required email, required password}) async {
+            submitCallCount++;
+            return const LoginSubmissionResult(
+              LoginSubmissionStatus.completed,
+            );
+          },
+          onLoginSucceeded: () => successCallCount++,
+        ),
+      ),
+    );
+    await _enterInput(tester);
+
+    await _tapSubmit(tester);
+    await tester.pumpAndSettle();
+    final loginButton =
+        tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+
+    expect(successCallCount, 1);
+    expect(loginButton.onPressed, isNull);
+    expect(submitCallCount, 1);
+  });
+
+  testWidgets('ログイン失敗と通信エラーでは成功を通知しない', (tester) async {
+    var status = LoginSubmissionStatus.failed;
+    var successCallCount = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: LoginScreen(
+          onSubmit: ({required email, required password}) async =>
+              LoginSubmissionResult(status),
+          onLoginSucceeded: () => successCallCount++,
+        ),
+      ),
+    );
+    await _enterInput(tester);
+
+    await _tapSubmit(tester);
+    await tester.pumpAndSettle();
+    status = LoginSubmissionStatus.networkError;
+    await _tapSubmit(tester);
+    await tester.pumpAndSettle();
+
+    expect(successCallCount, 0);
+  });
+
   testWidgets('ログイン失敗と通信エラーを区別して表示する', (tester) async {
     var status = LoginSubmissionStatus.failed;
     await tester.pumpWidget(
@@ -199,11 +252,16 @@ void main() {
     expect(find.text('ログインしました'), findsOneWidget);
   });
 
-  testWidgets('予期しない例外では詳細を露出せず失敗案内を表示する', (tester) async {
+  testWidgets('予期しない例外では専用案内を表示し再試行できる', (tester) async {
+    var callCount = 0;
     await tester.pumpWidget(
       _subject(
         onSubmit: ({required email, required password}) async {
-          throw Exception('secret server detail');
+          callCount++;
+          if (callCount == 1) {
+            throw Exception('secret server detail');
+          }
+          return const LoginSubmissionResult(LoginSubmissionStatus.completed);
         },
       ),
     );
@@ -213,10 +271,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('メールアドレスまたはパスワードを確認してください'),
+      find.text('予期しないエラーが発生しました。もう一度お試しください'),
       findsOneWidget,
     );
     expect(find.textContaining('secret server detail'), findsNothing);
+
+    await _tapSubmit(tester);
+    await tester.pumpAndSettle();
+
+    expect(callCount, 2);
+    expect(find.text('ログインしました'), findsOneWidget);
   });
 
   testWidgets('小さい画面とキーボード表示でもoverflowしない', (tester) async {

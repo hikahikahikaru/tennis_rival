@@ -7,7 +7,7 @@ import '../constants/app_text_styles.dart';
 import '../widgets/labeled_text_field.dart';
 import '../widgets/primary_button.dart';
 
-enum LoginSubmissionStatus { completed, failed, networkError }
+enum LoginSubmissionStatus { completed, failed, networkError, unexpectedError }
 
 /// UIが将来のAuthServiceの具体型に依存せず、ログイン結果を表示するための値。
 class LoginSubmissionResult {
@@ -24,11 +24,13 @@ typedef LoginSubmitCallback = Future<LoginSubmissionResult> Function({
 /// ログインの入力・検証・表示状態だけを担当し、認証通信は親へ委譲する画面。
 class LoginScreen extends StatefulWidget {
   final LoginSubmitCallback onSubmit;
+  final VoidCallback? onLoginSucceeded;
   final VoidCallback? onSignUpPressed;
 
   const LoginScreen({
     super.key,
     required this.onSubmit,
+    this.onLoginSucceeded,
     this.onSignUpPressed,
   });
 
@@ -47,6 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
   LoginSubmissionStatus? _submissionStatus;
   var _isSubmitting = false;
   var _obscurePassword = true;
+  var _didNotifyLoginSuccess = false;
 
   @override
   void dispose() {
@@ -69,21 +72,30 @@ class _LoginScreenState extends State<LoginScreen> {
     if (errors.isNotEmpty) return;
 
     setState(() => _isSubmitting = true);
+    late final LoginSubmissionResult result;
     try {
-      final result = await widget.onSubmit(email: email, password: password);
-      // 非同期処理中に画面を離れた場合、破棄済みWidgetを更新しない。
-      if (!mounted) return;
-      setState(() {
-        _isSubmitting = false;
-        _submissionStatus = result.status;
-      });
+      result = await widget.onSubmit(email: email, password: password);
     } catch (_) {
       if (!mounted) return;
-      // 例外の詳細を画面へ露出せず、再試行可能な一般エラーとして扱う。
+      // 例外の詳細や認証情報を露出せず、認証失敗とは別の案内を表示する。
       setState(() {
         _isSubmitting = false;
-        _submissionStatus = LoginSubmissionStatus.failed;
+        _submissionStatus = LoginSubmissionStatus.unexpectedError;
       });
+      return;
+    }
+
+    // 非同期処理中に画面を離れた場合、破棄済みWidgetを更新・通知しない。
+    if (!mounted) return;
+    setState(() {
+      _isSubmitting = false;
+      _submissionStatus = result.status;
+    });
+    if (result.status == LoginSubmissionStatus.completed &&
+        !_didNotifyLoginSuccess) {
+      // 成功後の遷移は親の責務とし、同じ結果から重複通知しない。
+      _didNotifyLoginSuccess = true;
+      widget.onLoginSucceeded?.call();
     }
   }
 
@@ -123,6 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
         return AppStrings.loginFailed;
       case LoginSubmissionStatus.networkError:
         return AppStrings.loginNetworkError;
+      case LoginSubmissionStatus.unexpectedError:
+        return AppStrings.loginUnexpectedError;
       case null:
         return null;
     }

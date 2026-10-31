@@ -54,6 +54,7 @@ class AppStrings {
   static const String loginCompleted = 'ログインしました';
   static const String loginFailed = 'メールアドレスまたはパスワードを確認してください';
   static const String loginNetworkError = '通信に失敗しました。通信環境を確認してもう一度お試しください';
+  static const String loginUnexpectedError = '予期しないエラーが発生しました。もう一度お試しください';
   static const String loginPasswordShow = 'パスワードを表示';
   static const String loginPasswordHide = 'パスワードを非表示';
   static const String loginSignUpPrompt = '新規アカウント登録はこちら';
