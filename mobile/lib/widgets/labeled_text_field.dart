@@ -14,6 +14,12 @@ class LabeledTextField extends StatelessWidget {
   final bool isMultiline;
   final String? errorText;
   final ValueChanged<String>? onChanged;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final Iterable<String>? autofillHints;
+  final bool enabled;
 
   const LabeledTextField({
     super.key,
@@ -24,6 +30,12 @@ class LabeledTextField extends StatelessWidget {
     this.isMultiline = false,
     this.errorText,
     this.onChanged,
+    this.obscureText = false,
+    this.suffixIcon,
+    this.keyboardType,
+    this.textInputAction,
+    this.autofillHints,
+    this.enabled = true,
   });
 
   @override
@@ -55,20 +67,27 @@ class LabeledTextField extends StatelessWidget {
         TextField(
           controller: controller,
           onChanged: onChanged,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
+          autofillHints: autofillHints,
+          enabled: enabled,
           minLines:
               isMultiline ? AppSizes.labeledTextFieldMultilineMinLines : 1,
-          maxLines: isMultiline ? AppSizes.labeledTextFieldMultilineMaxLines : 1,
-          textInputAction:
-              isMultiline ? TextInputAction.newline : TextInputAction.next,
+          maxLines:
+              isMultiline ? AppSizes.labeledTextFieldMultilineMaxLines : 1,
+          textInputAction: textInputAction ??
+              (isMultiline ? TextInputAction.newline : TextInputAction.next),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: AppTextStyles.labeledTextFieldHint,
             errorText: errorText,
+            suffixIcon: suffixIcon,
             filled: true,
             fillColor: AppColors.cardBackground,
             border: border,
             enabledBorder: border,
-            contentPadding: const EdgeInsets.all(AppSizes.selectionFieldPadding),
+            contentPadding:
+                const EdgeInsets.all(AppSizes.selectionFieldPadding),
           ),
         ),
       ],

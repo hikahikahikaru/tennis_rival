@@ -9,6 +9,22 @@ class AppTextStyles {
     fontWeight: FontWeight.w600,
   );
 
+  static const TextStyle signUpTitle = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    color: AppColors.matchOpponentText,
+  );
+
+  static const TextStyle signUpDescription = TextStyle(
+    fontSize: 14,
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle signUpFeedback = TextStyle(
+    fontSize: 14,
+    height: 1.5,
+  );
+
   // HomeScreen 用のテキストスタイル
   static const TextStyle homeAppName = TextStyle(
     fontSize: 24,

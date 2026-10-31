@@ -7,6 +7,37 @@ class AppStrings {
   static const String navEntry = '登録';
   static const String navGroup = 'グループ';
   static const String navProfile = 'マイページ';
+
+  // SignUpScreen
+  static const String signUpTitle = 'アカウント登録';
+  static const String signUpDescription =
+      'Tennis Rivalをはじめるために、アカウント情報を入力してください。';
+  static const String signUpDisplayNameLabel = '表示名';
+  static const String signUpDisplayNameHint = '例：たけし';
+  static const String signUpEmailLabel = 'メールアドレス';
+  static const String signUpEmailHint = '例：name@example.com';
+  static const String signUpPasswordLabel = 'パスワード';
+  static const String signUpPasswordHint = '8文字以上で入力';
+  static const String signUpConfirmPasswordLabel = 'パスワード（確認用）';
+  static const String signUpConfirmPasswordHint = 'パスワードをもう一度入力';
+  static const String signUpDisplayNameRequired = '表示名を入力してください';
+  static const String signUpEmailRequired = 'メールアドレスを入力してください';
+  static const String signUpEmailInvalid = 'メールアドレスの形式が正しくありません';
+  static const String signUpPasswordTooShort = 'パスワードは8文字以上で入力してください';
+  static const String signUpConfirmPasswordRequired = '確認用パスワードを入力してください';
+  static const String signUpPasswordMismatch = 'パスワードが一致しません';
+  static const String signUpSubmit = 'アカウントを作成する';
+  static const String signUpSubmitting = '登録中...';
+  static const String signUpCheckEmail = '確認メールをご確認ください';
+  static const String signUpCompletedButton = '登録完了';
+  static const String signUpConfirmationPending =
+      '登録手続きを受け付けました。確認メールが届いた場合は、メール内のリンクから登録を完了してください。';
+  static const String signUpCompleted = 'アカウント登録が完了しました';
+  static const String signUpFailed = 'アカウントを登録できませんでした。もう一度お試しください';
+  static const String signUpNetworkError = '通信に失敗しました。通信環境を確認してもう一度お試しください';
+  static const String signUpPasswordShow = 'パスワードを表示';
+  static const String signUpPasswordHide = 'パスワードを非表示';
+  static const String signUpLoginPrompt = 'すでにアカウントをお持ちの方はこちら';
   // アカウント登録で使用
   static const String accountRegistrationInputInvalid = '入力内容を確認してください';
   static const String accountDisplayNameRequired = '表示名を入力してください';
