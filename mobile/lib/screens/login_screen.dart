@@ -7,7 +7,13 @@ import '../constants/app_text_styles.dart';
 import '../widgets/labeled_text_field.dart';
 import '../widgets/primary_button.dart';
 
-enum LoginSubmissionStatus { completed, failed, networkError, unexpectedError }
+enum LoginSubmissionStatus {
+  completed,
+  failed,
+  emailNotConfirmed,
+  networkError,
+  unexpectedError,
+}
 
 /// UIが将来のAuthServiceの具体型に依存せず、ログイン結果を表示するための値。
 class LoginSubmissionResult {
@@ -26,12 +32,14 @@ class LoginScreen extends StatefulWidget {
   final LoginSubmitCallback onSubmit;
   final VoidCallback? onLoginSucceeded;
   final VoidCallback? onSignUpPressed;
+  final String? noticeMessage;
 
   const LoginScreen({
     super.key,
     required this.onSubmit,
     this.onLoginSucceeded,
     this.onSignUpPressed,
+    this.noticeMessage,
   });
 
   @override
@@ -133,6 +141,8 @@ class _LoginScreenState extends State<LoginScreen> {
         return AppStrings.loginCompleted;
       case LoginSubmissionStatus.failed:
         return AppStrings.loginFailed;
+      case LoginSubmissionStatus.emailNotConfirmed:
+        return AppStrings.authenticationEmailNotConfirmed;
       case LoginSubmissionStatus.networkError:
         return AppStrings.loginNetworkError;
       case LoginSubmissionStatus.unexpectedError:
@@ -144,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final feedbackMessage = _feedbackMessage;
+    final feedbackMessage = _feedbackMessage ?? widget.noticeMessage;
     final fieldsEnabled = !_isSubmitting && !_isSuccessful;
 
     return Scaffold(

@@ -170,6 +170,138 @@ void main() {
       expect(result.status, AccountRegistrationStatus.unknownError);
       expect(result.message, isNot(contains(secret)));
     });
+
+    test('signs in with a normalized email and returns the user ID', () async {
+      final repository = _FakeAuthRepository(
+        signInResponse: const AuthSignInResponse(
+          userId: 'user-2',
+          hasSession: true,
+        ),
+      );
+
+      final result = await AuthService(repository: repository).signIn(
+        email: '  login@example.com  ',
+        password: 'password8',
+      );
+
+      expect(result.status, AuthenticationStatus.authenticated);
+      expect(result.userId, 'user-2');
+      expect(repository.signInEmail, 'login@example.com');
+      expect(repository.signInCallCount, 1);
+    });
+
+    test('does not call sign in for invalid input', () async {
+      final repository = _FakeAuthRepository();
+
+      final result = await AuthService(repository: repository).signIn(
+        email: 'invalid-email',
+        password: '',
+      );
+
+      expect(result.status, AuthenticationStatus.validationError);
+      expect(repository.signInCallCount, 0);
+    });
+
+    test('does not authenticate when the repository reports no session',
+        () async {
+      final repository = _FakeAuthRepository(
+        signInResponse: const AuthSignInResponse(
+          userId: 'user-2',
+          hasSession: false,
+        ),
+      );
+
+      final result = await AuthService(repository: repository).signIn(
+        email: 'login@example.com',
+        password: 'password8',
+      );
+
+      expect(result.status, AuthenticationStatus.unknownError);
+      expect(result.isSuccess, isFalse);
+    });
+
+    test('classifies credential, confirmation, and unexpected auth errors',
+        () async {
+      final invalidRepository = _FakeAuthRepository(
+        signInError:
+            const AuthException('invalid', code: 'invalid_credentials'),
+      );
+      final unconfirmedRepository = _FakeAuthRepository(
+        signInError:
+            const AuthException('unconfirmed', code: 'email_not_confirmed'),
+      );
+      final unexpectedRepository = _FakeAuthRepository(
+        signInError: const AuthException(
+          'invalid response detail',
+          code: 'invalid_auth_response',
+        ),
+      );
+
+      final invalid = await AuthService(repository: invalidRepository).signIn(
+        email: 'login@example.com',
+        password: 'password8',
+      );
+      final unconfirmed =
+          await AuthService(repository: unconfirmedRepository).signIn(
+        email: 'login@example.com',
+        password: 'password8',
+      );
+      final unexpected =
+          await AuthService(repository: unexpectedRepository).signIn(
+        email: 'login@example.com',
+        password: 'password8',
+      );
+
+      expect(invalid.status, AuthenticationStatus.invalidCredentials);
+      expect(unconfirmed.status, AuthenticationStatus.emailNotConfirmed);
+      expect(unconfirmed.isSuccess, isFalse);
+      expect(unexpected.status, AuthenticationStatus.unknownError);
+      expect(unexpected.message, isNot(contains('invalid response detail')));
+    });
+
+    test('classifies retryable and unknown sign in failures safely', () async {
+      final networkRepository = _FakeAuthRepository(
+        signInError: AuthRetryableFetchException(message: 'socket secret'),
+      );
+      final unknownRepository = _FakeAuthRepository(
+        signInError: Exception('token secret'),
+      );
+
+      final network = await AuthService(repository: networkRepository).signIn(
+        email: 'login@example.com',
+        password: 'password8',
+      );
+      final unknown = await AuthService(repository: unknownRepository).signIn(
+        email: 'login@example.com',
+        password: 'password8',
+      );
+
+      expect(network.status, AuthenticationStatus.networkError);
+      expect(network.message, isNot(contains('socket secret')));
+      expect(unknown.status, AuthenticationStatus.unknownError);
+      expect(unknown.message, isNot(contains('token secret')));
+    });
+
+    test('signs out and classifies logout failures', () async {
+      final successRepository = _FakeAuthRepository();
+      final networkRepository = _FakeAuthRepository(
+        signOutError: AuthRetryableFetchException(message: 'offline'),
+      );
+      final authRepository = _FakeAuthRepository(
+        signOutError: const AuthException('denied'),
+      );
+
+      final success =
+          await AuthService(repository: successRepository).signOut();
+      final network =
+          await AuthService(repository: networkRepository).signOut();
+      final auth = await AuthService(repository: authRepository).signOut();
+
+      expect(success.status, LogoutStatus.signedOut);
+      expect(successRepository.signOutCallCount, 1);
+      expect(network.status, LogoutStatus.networkError);
+      expect(auth.status, LogoutStatus.authError);
+    });
   });
 }
 
@@ -196,14 +328,28 @@ class _FakeAuthRepository implements AuthRepository {
       hasSession: false,
     ),
     this.error,
+    this.signInResponse = const AuthSignInResponse(
+      userId: 'user-1',
+      hasSession: true,
+    ),
+    this.signInError,
+    this.signOutError,
   });
 
   final AuthSignUpResponse response;
   final Object? error;
+  final AuthSignInResponse signInResponse;
+  final Object? signInError;
+  final Object? signOutError;
+  @override
+  bool get hasActiveSession => false;
   int callCount = 0;
+  int signInCallCount = 0;
+  int signOutCallCount = 0;
   String? displayName;
   String? email;
   String? password;
+  String? signInEmail;
 
   @override
   Future<AuthSignUpResponse> signUp({
@@ -218,5 +364,24 @@ class _FakeAuthRepository implements AuthRepository {
     final failure = error;
     if (failure != null) throw failure;
     return response;
+  }
+
+  @override
+  Future<AuthSignInResponse> signIn({
+    required String email,
+    required String password,
+  }) async {
+    signInCallCount++;
+    signInEmail = email;
+    final failure = signInError;
+    if (failure != null) throw failure;
+    return signInResponse;
+  }
+
+  @override
+  Future<void> signOut() async {
+    signOutCallCount++;
+    final failure = signOutError;
+    if (failure != null) throw failure;
   }
 }

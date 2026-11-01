@@ -58,6 +58,19 @@ class AppStrings {
   static const String loginPasswordShow = 'パスワードを表示';
   static const String loginPasswordHide = 'パスワードを非表示';
   static const String loginSignUpPrompt = '新規アカウント登録はこちら';
+  static const String authenticationInputInvalid = '入力内容を確認してください';
+  static const String authenticationEmailNotConfirmed =
+      'メールアドレスの確認が完了していません。確認メールをご確認ください';
+  static const String authenticationFailed = 'メールアドレスまたはパスワードを確認してください';
+  static const String authenticationNetworkError =
+      '通信に失敗しました。通信環境を確認してもう一度お試しください';
+  static const String authenticationUnexpectedError = 'ログイン中に予期しないエラーが発生しました';
+  static const String logoutTooltip = 'ログアウト';
+  static const String logoutFailed = 'ログアウトできませんでした。もう一度お試しください';
+  static const String logoutNetworkError = '通信に失敗しました。通信環境を確認してもう一度お試しください';
+  static const String logoutUnexpectedError = 'ログアウト中に予期しないエラーが発生しました';
+  static const String logoutSessionWarning =
+      '端末からログアウトしましたが、通信エラーが発生しました。安全のため、もう一度ログインしてください';
   // アカウント登録で使用
   static const String accountRegistrationInputInvalid = '入力内容を確認してください';
   static const String accountDisplayNameRequired = '表示名を入力してください';

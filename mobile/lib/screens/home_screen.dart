@@ -20,6 +20,8 @@ import 'group_list_screen.dart';
 import 'match_entry_screen.dart';
 import 'match_history_screen.dart';
 
+typedef HomeLogoutCallback = Future<String?> Function();
+
 /// 既存部品の配置と画面遷移・操作の接続を担当するホーム画面。
 ///
 /// DB通信とキャッシュはServiceへ委譲し、画面では取得開始と状態表示を担当する。
@@ -28,12 +30,14 @@ class HomeScreen extends StatefulWidget {
   final MatchHistoryService? matchHistoryService;
   final MatchMemoService? matchMemoService;
   final String? currentUserId;
+  final HomeLogoutCallback? onLogout;
 
   const HomeScreen({
     super.key,
     this.matchHistoryService,
     this.matchMemoService,
     this.currentUserId,
+    this.onLogout,
   });
 
   // 確認待ち件数は画面確認用の仮データ。DB対応時に差し替える。
@@ -55,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Object? _monthlyStatsError;
   var _isMonthlyStatsLoading = true;
   var _monthlyStatsRequestId = 0;
+  var _isLoggingOut = false;
 
   @override
   void initState() {
@@ -222,6 +227,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _logout() async {
+    final onLogout = widget.onLogout;
+    if (onLogout == null || _isLoggingOut) return;
+
+    setState(() => _isLoggingOut = true);
+    try {
+      final errorMessage = await onLogout();
+      // 成功時は親がこの画面を破棄するため、残っている場合だけ状態を戻す。
+      if (!mounted) return;
+      setState(() => _isLoggingOut = false);
+      if (errorMessage != null) {
+        _showTemporaryMessage(context, errorMessage);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoggingOut = false);
+      _showTemporaryMessage(context, AppStrings.logoutUnexpectedError);
+    }
+  }
+
   void _handleBottomNavTap(BuildContext context, int index) {
     final selectedItem = appNavItems[index];
 
@@ -376,6 +401,24 @@ class _HomeScreenState extends State<HomeScreen> {
             size: AppSizes.homeNotificationIconSize,
           ),
         ),
+        if (widget.onLogout != null)
+          _isLoggingOut
+              ? const Padding(
+                  padding: EdgeInsets.all(AppSizes.spacingMedium),
+                  child: SizedBox.square(
+                    dimension: AppSizes.homeNotificationIconSize,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : IconButton(
+                  tooltip: AppStrings.logoutTooltip,
+                  onPressed: _logout,
+                  icon: const Icon(
+                    Icons.logout,
+                    color: AppColors.primary,
+                    size: AppSizes.homeNotificationIconSize,
+                  ),
+                ),
       ],
     );
   }

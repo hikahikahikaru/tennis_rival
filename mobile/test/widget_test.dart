@@ -23,6 +23,7 @@ void main() {
     _FakeMatchHistoryRepository? repository,
     MatchHistoryService? historyService,
     MatchMemoRepository? memoRepository,
+    HomeLogoutCallback? onLogout,
   }) async {
     if (screenSize != null) {
       tester.view.physicalSize = screenSize;
@@ -45,6 +46,7 @@ void main() {
             repository: memoRepository ?? _FakeMatchMemoRepository(),
             matchHistoryService: resolvedHistoryService,
           ),
+          onLogout: onLogout,
         ),
       ),
     );
@@ -73,6 +75,40 @@ void main() {
       expect(find.text('4-6, 7-5, 10-8'), findsOneWidget);
     },
   );
+
+  testWidgets('ログアウト失敗時はホームに留まりエラーを表示する', (tester) async {
+    await pumpHome(
+      tester,
+      onLogout: () async => 'ログアウトできませんでした。もう一度お試しください',
+    );
+
+    await tester.tap(find.byTooltip('ログアウト'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.text('ログアウトできませんでした。もう一度お試しください'), findsOneWidget);
+  });
+
+  testWidgets('ログアウト処理中は二重実行を防止する', (tester) async {
+    final response = Completer<String?>();
+    var callCount = 0;
+    await pumpHome(
+      tester,
+      onLogout: () {
+        callCount++;
+        return response.future;
+      },
+    );
+
+    await tester.tap(find.byTooltip('ログアウト'));
+    await tester.pump();
+
+    expect(callCount, 1);
+    expect(find.byTooltip('ログアウト'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsWidgets);
+    response.complete('ログアウトできませんでした。もう一度お試しください');
+    await tester.pumpAndSettle();
+  });
 
   testWidgets('shows empty message when fetched recent matches are empty',
       (WidgetTester tester) async {
