@@ -7,7 +7,13 @@ import '../constants/app_text_styles.dart';
 import '../widgets/labeled_text_field.dart';
 import '../widgets/primary_button.dart';
 
-enum LoginSubmissionStatus { completed, failed, networkError, unexpectedError }
+enum LoginSubmissionStatus {
+  completed,
+  failed,
+  emailNotConfirmed,
+  networkError,
+  unexpectedError,
+}
 
 /// UIが将来のAuthServiceの具体型に依存せず、ログイン結果を表示するための値。
 class LoginSubmissionResult {
@@ -133,6 +139,8 @@ class _LoginScreenState extends State<LoginScreen> {
         return AppStrings.loginCompleted;
       case LoginSubmissionStatus.failed:
         return AppStrings.loginFailed;
+      case LoginSubmissionStatus.emailNotConfirmed:
+        return AppStrings.authenticationEmailNotConfirmed;
       case LoginSubmissionStatus.networkError:
         return AppStrings.loginNetworkError;
       case LoginSubmissionStatus.unexpectedError:
