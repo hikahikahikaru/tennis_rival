@@ -108,6 +108,7 @@ class _MyAppState extends State<MyApp> {
   late final AuthService _authService;
   String? _currentUserId;
   String? _authenticatedUserId;
+  String? _loginNotice;
 
   @override
   void initState() {
@@ -144,7 +145,10 @@ class _MyAppState extends State<MyApp> {
   void _completeSignIn() {
     final userId = _authenticatedUserId;
     if (userId == null) return;
-    setState(() => _currentUserId = userId);
+    setState(() {
+      _currentUserId = userId;
+      _loginNotice = null;
+    });
     final onAuthenticated = widget.onAuthenticated;
     if (onAuthenticated != null) {
       onAuthenticated(userId);
@@ -163,6 +167,8 @@ class _MyAppState extends State<MyApp> {
       setState(() {
         _currentUserId = null;
         _authenticatedUserId = null;
+        _loginNotice =
+            result.isSuccess ? null : AppStrings.logoutSessionWarning;
       });
       return null;
     }
@@ -174,12 +180,16 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final userId = _currentUserId;
     return MaterialApp(
+      // 認証境界を越えたときNavigatorも作り直し、保護画面の履歴を破棄する。
+      key: ValueKey(
+          userId == null ? 'unauthenticated' : 'authenticated:$userId'),
       title: 'Tennis Rival',
       theme: AppTheme.lightTheme,
       home: userId == null
           ? LoginScreen(
               onSubmit: _signIn,
               onLoginSucceeded: _completeSignIn,
+              noticeMessage: _loginNotice,
             )
           : widget.homeBuilder?.call(userId, _signOut) ??
               HomeScreen(currentUserId: userId, onLogout: _signOut),

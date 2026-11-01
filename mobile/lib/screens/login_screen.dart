@@ -32,12 +32,14 @@ class LoginScreen extends StatefulWidget {
   final LoginSubmitCallback onSubmit;
   final VoidCallback? onLoginSucceeded;
   final VoidCallback? onSignUpPressed;
+  final String? noticeMessage;
 
   const LoginScreen({
     super.key,
     required this.onSubmit,
     this.onLoginSucceeded,
     this.onSignUpPressed,
+    this.noticeMessage,
   });
 
   @override
@@ -152,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final feedbackMessage = _feedbackMessage;
+    final feedbackMessage = _feedbackMessage ?? widget.noticeMessage;
     final fieldsEnabled = !_isSubmitting && !_isSuccessful;
 
     return Scaffold(

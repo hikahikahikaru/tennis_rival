@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/constants/app_strings.dart';
 import 'package:mobile/main.dart';
 import 'package:mobile/repositories/auth_repository.dart';
 import 'package:mobile/screens/login_screen.dart';
@@ -70,6 +73,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.text(AppStrings.logoutSessionWarning), findsNothing);
     expect(repository.signOutCallCount, 1);
     expect(repository.hasActiveSession, isFalse);
     expect(
@@ -98,7 +102,58 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.text(AppStrings.logoutSessionWarning), findsOneWidget);
     expect(repository.hasActiveSession, isFalse);
+  });
+
+  testWidgets('ログアウト中に別画面へ移動しても完了後はログインだけを表示する', (tester) async {
+    final signOutCompleter = Completer<void>();
+    final repository = _FakeAuthRepository(
+      hasActiveSession: true,
+      signOutCompleter: signOutCompleter,
+    );
+
+    await tester.pumpWidget(
+      MyApp(
+        authService: AuthService(repository: repository),
+        initialUserId: 'user-1',
+        homeBuilder: (userId, onLogout) => Scaffold(
+          body: Builder(
+            builder: (context) => Column(
+              children: [
+                ElevatedButton(
+                  onPressed: onLogout,
+                  child: const Text('logout'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => const Scaffold(body: Text('protected')),
+                    ),
+                  ),
+                  child: const Text('open protected'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('logout'));
+    await tester.pump();
+    await tester.tap(find.text('open protected'));
+    await tester.pumpAndSettle();
+    expect(find.text('protected'), findsOneWidget);
+
+    signOutCompleter.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.text('protected'), findsNothing);
+    expect(
+        Navigator.of(tester.element(find.byType(LoginScreen))).canPop(), false);
   });
 
   testWidgets('ログアウト失敗時にセッションが残ればホームでエラーを表示する', (tester) async {
@@ -185,12 +240,14 @@ class _FakeAuthRepository implements AuthRepository {
     bool hasActiveSession = false,
     this.clearSessionBeforeSignOutError = false,
     this.preserveSessionOnSuccess = false,
+    this.signOutCompleter,
   }) : _hasActiveSession = hasActiveSession;
 
   final Object? signInError;
   final Object? signOutError;
   final bool clearSessionBeforeSignOutError;
   final bool preserveSessionOnSuccess;
+  final Completer<void>? signOutCompleter;
   bool _hasActiveSession;
   int signInCallCount = 0;
   int signOutCallCount = 0;
@@ -212,6 +269,7 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   Future<void> signOut() async {
     signOutCallCount++;
+    await signOutCompleter?.future;
     if (clearSessionBeforeSignOutError) {
       _hasActiveSession = false;
     }

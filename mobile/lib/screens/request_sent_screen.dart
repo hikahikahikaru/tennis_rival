@@ -4,7 +4,6 @@ import '../constants/app_sizes.dart';
 import '../constants/app_strings.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/success_message.dart';
-import 'home_screen.dart';
 
 class RequestSentScreen extends StatelessWidget {
   final String opponentName;
@@ -39,11 +38,8 @@ class RequestSentScreen extends StatelessWidget {
               PrimaryButton(
                 label: AppStrings.returnToHome,
                 onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                    (route) => false,
-                  );
+                  // 認証済みのルート画面へ戻し、ユーザーIDやログアウト導線を引き継ぐ。
+                  Navigator.popUntil(context, (route) => route.isFirst);
                 },
               ),
             ],
