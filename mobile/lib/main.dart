@@ -7,6 +7,7 @@ import 'constants/app_theme.dart';
 import 'constants/supabase_constants.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/sign_up_screen.dart';
 import 'services/auth_service.dart';
 import 'services/match_history_service.dart';
 import 'services/opponent_service.dart';
@@ -142,6 +143,44 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<SignUpSubmissionResult> _signUp({
+    required String displayName,
+    required String email,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    final result = await _authService.signUp(
+      displayName: displayName,
+      email: email,
+      password: password,
+      confirmPassword: confirmPassword,
+    );
+    return SignUpSubmissionResult(switch (result.status) {
+      AccountRegistrationStatus.emailConfirmationRequired =>
+        SignUpSubmissionStatus.emailConfirmationRequired,
+      AccountRegistrationStatus.authenticated =>
+        SignUpSubmissionStatus.completed,
+      AccountRegistrationStatus.networkError =>
+        SignUpSubmissionStatus.networkError,
+      AccountRegistrationStatus.validationError ||
+      AccountRegistrationStatus.authError ||
+      AccountRegistrationStatus.unknownError =>
+        SignUpSubmissionStatus.failed,
+    });
+  }
+
+  void _openSignUp(BuildContext context) {
+    // 登録画面は未認証Navigatorに1枚だけ積み、戻る操作で元のログイン画面を再利用する。
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (signUpContext) => SignUpScreen(
+          onSubmit: _signUp,
+          onLoginPressed: () => Navigator.of(signUpContext).pop(),
+        ),
+      ),
+    );
+  }
+
   void _completeSignIn() {
     final userId = _authenticatedUserId;
     if (userId == null) return;
@@ -186,10 +225,13 @@ class _MyAppState extends State<MyApp> {
       title: 'Tennis Rival',
       theme: AppTheme.lightTheme,
       home: userId == null
-          ? LoginScreen(
-              onSubmit: _signIn,
-              onLoginSucceeded: _completeSignIn,
-              noticeMessage: _loginNotice,
+          ? Builder(
+              builder: (loginContext) => LoginScreen(
+                onSubmit: _signIn,
+                onLoginSucceeded: _completeSignIn,
+                onSignUpPressed: () => _openSignUp(loginContext),
+                noticeMessage: _loginNotice,
+              ),
             )
           : widget.homeBuilder?.call(userId, _signOut) ??
               HomeScreen(currentUserId: userId, onLogout: _signOut),
