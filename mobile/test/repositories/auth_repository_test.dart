@@ -112,6 +112,162 @@ void main() {
         ),
       );
     });
+
+    test('signs in with a password and returns user and session state',
+        () async {
+      final requests = <http.Request>[];
+      final client = _clientReturning(requests, (request) {
+        return _jsonResponse({
+          'access_token': 'test-access-token',
+          'token_type': 'bearer',
+          'expires_in': 3600,
+          'refresh_token': 'test-refresh-token',
+          'user': _userJson(),
+        }, request);
+      });
+      addTearDown(client.dispose);
+
+      final result = await SupabaseAuthRepository(client: client).signIn(
+        email: 'takeshi@example.com',
+        password: 'password8',
+      );
+
+      expect(result.userId, userId);
+      expect(result.hasSession, isTrue);
+      final request = requests.single;
+      expect(request.url.path, '/auth/v1/token');
+      expect(request.url.queryParameters['grant_type'], 'password');
+      final body = jsonDecode(request.body) as Map<String, dynamic>;
+      expect(body['email'], 'takeshi@example.com');
+      expect(body['password'], 'password8');
+    });
+
+    test('signs out only the local session', () async {
+      final requests = <http.Request>[];
+      final client = _clientReturning(requests, (request) {
+        if (request.url.path == '/auth/v1/token') {
+          return _jsonResponse({
+            'access_token': 'test-access-token',
+            'token_type': 'bearer',
+            'expires_in': 3600,
+            'refresh_token': 'test-refresh-token',
+            'user': _userJson(),
+          }, request);
+        }
+        return http.Response('', 204, request: request);
+      });
+      addTearDown(client.dispose);
+      final repository = SupabaseAuthRepository(client: client);
+      await repository.signIn(
+        email: 'takeshi@example.com',
+        password: 'password8',
+      );
+
+      await repository.signOut();
+
+      final logoutRequest = requests.last;
+      expect(logoutRequest.url.path, '/auth/v1/logout');
+      expect(logoutRequest.url.queryParameters['scope'], 'local');
+      expect(client.auth.currentSession, isNull);
+    });
+
+    test('does not accept a session for an unconfirmed email', () async {
+      final requests = <http.Request>[];
+      final client = _clientReturning(requests, (request) {
+        if (request.url.path == '/auth/v1/token') {
+          final unconfirmedUser = Map<String, dynamic>.of(_userJson())
+            ..remove('email_confirmed_at');
+          return _jsonResponse({
+            'access_token': 'test-access-token',
+            'token_type': 'bearer',
+            'expires_in': 3600,
+            'refresh_token': 'test-refresh-token',
+            'user': unconfirmedUser,
+          }, request);
+        }
+        // リモート破棄に失敗しても、SDKがローカルセッションを消すことを確認する。
+        return http.Response(
+          jsonEncode({'msg': 'temporary failure'}),
+          503,
+          headers: {'content-type': 'application/json'},
+          request: request,
+        );
+      });
+      addTearDown(client.dispose);
+
+      await expectLater(
+        SupabaseAuthRepository(client: client).signIn(
+          email: 'takeshi@example.com',
+          password: 'password8',
+        ),
+        throwsA(
+          isA<AuthException>().having(
+            (error) => error.code,
+            'code',
+            'email_not_confirmed',
+          ),
+        ),
+      );
+      expect(client.auth.currentSession, isNull);
+      expect(requests.last.url.path, '/auth/v1/logout');
+    });
+
+    test('does not accept a sign in response without a session', () async {
+      final client = _clientReturning(
+        [],
+        (request) => _jsonResponse(_userJson(), request),
+      );
+      addTearDown(client.dispose);
+
+      await expectLater(
+        SupabaseAuthRepository(client: client).signIn(
+          email: 'takeshi@example.com',
+          password: 'password8',
+        ),
+        throwsA(
+          isA<AuthException>().having(
+            (error) => error.code,
+            'code',
+            'invalid_auth_response',
+          ),
+        ),
+      );
+    });
+
+    test('clears a session when the sign in response has no user', () async {
+      final requests = <http.Request>[];
+      final client = _clientReturning(requests, (request) {
+        if (request.url.path == '/auth/v1/token') {
+          return _jsonResponse({
+            'access_token': 'test-access-token',
+            'token_type': 'bearer',
+            'expires_in': 3600,
+            'refresh_token': 'test-refresh-token',
+            'user': null,
+          }, request);
+        }
+        return http.Response('', 204, request: request);
+      });
+      addTearDown(client.dispose);
+
+      await expectLater(
+        SupabaseAuthRepository(client: client).signIn(
+          email: 'takeshi@example.com',
+          password: 'password8',
+        ),
+        throwsA(
+          isA<AuthException>().having(
+            (error) => error.code,
+            'code',
+            'invalid_auth_response',
+          ),
+        ),
+      );
+      expect(client.auth.currentSession, isNull);
+      if (requests.length > 1) {
+        expect(requests.last.url.path, '/auth/v1/logout');
+      }
+    });
   });
 }
 
@@ -155,4 +311,5 @@ Map<String, dynamic> _userJson() => {
       },
       'user_metadata': {'user_name': 'たけし'},
       'created_at': '2026-10-25T00:00:00.000Z',
+      'email_confirmed_at': '2026-10-25T00:01:00.000Z',
     };
