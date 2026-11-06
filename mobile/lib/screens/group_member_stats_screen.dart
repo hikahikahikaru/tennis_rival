@@ -14,12 +14,14 @@ import '../widgets/member_stats_summary_card.dart';
 /// グループメンバーの戦績画面。DB連携は別issueのため、現在はモックデータを表示する。
 class GroupMemberStatsScreen extends StatefulWidget {
   final GroupMember member;
+  final String? groupId;
   final String? groupName;
   final List<GroupMemberMatch>? matches;
 
   const GroupMemberStatsScreen({
     super.key,
     required this.member,
+    this.groupId,
     this.groupName,
     this.matches,
   });
@@ -32,7 +34,10 @@ class _GroupMemberStatsScreenState extends State<GroupMemberStatsScreen> {
   var _condition = const MatchSortCondition();
 
   List<GroupMemberMatch> get _filteredMatches {
-    final matches = widget.matches ?? MockData.memberMatches;
+    final matches = widget.matches ??
+        MockData.memberMatchesByGroupAndMemberId[widget.groupId]
+            ?[widget.member.id] ??
+        const <GroupMemberMatch>[];
     return _condition.apply(
       matches,
       dateOf: (m) => m.matchDate,

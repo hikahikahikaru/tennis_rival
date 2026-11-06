@@ -31,11 +31,14 @@ class MatchPeriodDialog extends StatefulWidget {
   /// 8桁のyyyyMMddを日付に変換する。実在しない日付はnull。
   static DateTime? parse(String text) {
     if (text.length != AppSizes.matchPeriodInputLength) return null;
-    final y = int.parse(text.substring(0, 4));
-    final m = int.parse(text.substring(4, 6));
-    final d = int.parse(text.substring(6, 8));
-    final date = DateTime(y, m, d);
-    return date.year == y && date.month == m && date.day == d ? date : null;
+    if (!RegExp(r'^\d{8}$').hasMatch(text)) return null;
+    final year = int.parse(text.substring(0, 4));
+    final month = int.parse(text.substring(4, 6));
+    final day = int.parse(text.substring(6, 8));
+    final date = DateTime(year, month, day);
+    return date.year == year && date.month == month && date.day == day
+        ? date
+        : null;
   }
 
   @override
@@ -43,6 +46,12 @@ class MatchPeriodDialog extends StatefulWidget {
 }
 
 class _MatchPeriodDialogState extends State<MatchPeriodDialog> {
+  DateTime get _firstDate => DateTime(AppSizes.matchSortPeriodFirstYear);
+  DateTime get _lastDate => DateTime(DateTime.now().year + 1, 12, 31);
+
+  bool _isInRange(DateTime date) =>
+      !date.isBefore(_firstDate) && !date.isAfter(_lastDate);
+
   late final _fromController = TextEditingController(
     text: widget.from == null ? '' : MatchPeriodDialog.format(widget.from!),
   );
@@ -61,15 +70,16 @@ class _MatchPeriodDialogState extends State<MatchPeriodDialog> {
 
   Future<void> _pickFromCalendar(TextEditingController controller) async {
     final now = DateTime.now();
-    final initial = MatchPeriodDialog.parse(controller.text) ?? now;
+    final entered = MatchPeriodDialog.parse(controller.text);
+    final initial = entered != null && _isInRange(entered) ? entered : now;
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
-      firstDate: DateTime(AppSizes.matchSortPeriodFirstYear),
-      lastDate: DateTime(now.year + 1, 12, 31),
+      firstDate: _firstDate,
+      lastDate: _lastDate,
       initialEntryMode: DatePickerEntryMode.calendarOnly,
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() => controller.text = MatchPeriodDialog.format(picked));
     }
   }
@@ -82,15 +92,31 @@ class _MatchPeriodDialogState extends State<MatchPeriodDialog> {
     final to = parseField(_toController.text);
     final fromInvalid = _fromController.text.isNotEmpty && from == null;
     final toInvalid = _toController.text.isNotEmpty && to == null;
+    final fromOutOfRange = from != null && !_isInRange(from);
+    final toOutOfRange = to != null && !_isInRange(to);
     final reversed = from != null && to != null && from.isAfter(to);
+    final rangeError = AppStrings.matchPeriodOutOfRange(
+      MatchPeriodDialog.format(_firstDate),
+      MatchPeriodDialog.format(_lastDate),
+    );
 
     setState(() {
-      _fromError = fromInvalid ? AppStrings.matchPeriodInvalidDate : null;
+      _fromError = fromInvalid
+          ? AppStrings.matchPeriodInvalidDate
+          : (fromOutOfRange ? rangeError : null);
       _toError = toInvalid
           ? AppStrings.matchPeriodInvalidDate
-          : (reversed ? AppStrings.matchPeriodReversed : null);
+          : (toOutOfRange
+              ? rangeError
+              : (reversed ? AppStrings.matchPeriodReversed : null));
     });
-    if (fromInvalid || toInvalid || reversed) return;
+    if (fromInvalid ||
+        toInvalid ||
+        fromOutOfRange ||
+        toOutOfRange ||
+        reversed) {
+      return;
+    }
 
     Navigator.pop(context, (from: from, to: to));
   }
@@ -113,6 +139,7 @@ class _MatchPeriodDialogState extends State<MatchPeriodDialog> {
         labelText: label,
         hintText: AppStrings.matchPeriodHint,
         errorText: error,
+        errorMaxLines: 3,
         suffixIcon: IconButton(
           tooltip: AppStrings.matchPeriodCalendar,
           icon: const Icon(Icons.calendar_month),

@@ -173,5 +173,24 @@ void main() {
 
     expect(find.byType(GroupMemberStatsScreen), findsOneWidget);
     expect(find.text('西やんの戦績'), findsOneWidget);
+    expect(find.text('vs たけし'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.arrow_back_ios));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('たけし'));
+    await tester.pumpAndSettle();
+    expect(find.text('たけしの戦績'), findsOneWidget);
+    expect(find.text('該当する試合はありません'), findsOneWidget);
+    expect(find.byType(MatchCard), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(
+      const MaterialApp(home: GroupDetailScreen(groupId: 'group-2')),
+    );
+    await tester.tap(find.text('西やん'));
+    await tester.pumpAndSettle();
+    expect(find.text('西やんの戦績'), findsOneWidget);
+    expect(find.text('該当する試合はありません'), findsOneWidget);
+    expect(find.byType(MatchCard), findsNothing);
   });
 }

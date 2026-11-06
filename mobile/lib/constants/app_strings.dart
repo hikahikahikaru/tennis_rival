@@ -250,6 +250,8 @@ class AppStrings {
   static const String matchPeriodHint = 'yyyyMMdd';
   static const String matchPeriodCalendar = 'カレンダーから選択';
   static const String matchPeriodInvalidDate = '日付をyyyyMMddの8桁で入力してください';
+  static String matchPeriodOutOfRange(String first, String last) =>
+      '$firstから$lastの範囲で入力してください';
   static const String matchPeriodReversed = '終了日は開始日以降にしてください';
   static const String matchPeriodCancel = 'キャンセル';
   static const String matchPeriodApply = '適用';

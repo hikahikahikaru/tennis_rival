@@ -143,6 +143,11 @@ class MockData {
     tennisCircleDetail.id: tennisCircleMatches,
   };
 
+  static final Map<String, Map<String, List<GroupMemberMatch>>>
+      memberMatchesByGroupAndMemberId = {
+    groupDetail.id: {'u2': memberMatches},
+  };
+
   /// 「たけし」と同じグループに所属する対戦相手のモックリスト
   static const List<UserModel> opponents = [
     UserModel(
