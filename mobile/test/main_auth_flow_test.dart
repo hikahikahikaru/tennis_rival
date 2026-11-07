@@ -6,6 +6,7 @@ import 'package:mobile/constants/app_strings.dart';
 import 'package:mobile/main.dart';
 import 'package:mobile/repositories/auth_repository.dart';
 import 'package:mobile/screens/login_screen.dart';
+import 'package:mobile/screens/sign_up_screen.dart';
 import 'package:mobile/services/auth_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -22,6 +23,76 @@ void main() {
 
     expect(find.byType(LoginScreen), findsOneWidget);
     expect(preloadCallCount, 0);
+  });
+
+  testWidgets('ログイン画面と登録画面を相互遷移しても履歴が増えない', (tester) async {
+    await tester.pumpWidget(
+      MyApp(authService: AuthService(repository: _FakeAuthRepository())),
+    );
+
+    for (var index = 0; index < 2; index++) {
+      await tester.tap(find.text(AppStrings.loginSignUpPrompt));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SignUpScreen), findsOneWidget);
+      expect(
+        Navigator.of(tester.element(find.byType(SignUpScreen))).canPop(),
+        isTrue,
+      );
+
+      await tester.ensureVisible(find.text(AppStrings.signUpLoginPrompt));
+      await tester.tap(find.text(AppStrings.signUpLoginPrompt));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoginScreen), findsOneWidget);
+      expect(
+        Navigator.of(tester.element(find.byType(LoginScreen))).canPop(),
+        isFalse,
+      );
+    }
+  });
+
+  testWidgets('登録画面からシステム戻る操作でログイン画面へ戻る', (tester) async {
+    await tester.pumpWidget(
+      MyApp(authService: AuthService(repository: _FakeAuthRepository())),
+    );
+
+    await tester.tap(find.text(AppStrings.loginSignUpPrompt));
+    await tester.pumpAndSettle();
+    expect(find.byType(SignUpScreen), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byType(SignUpScreen), findsNothing);
+    expect(
+      Navigator.of(tester.element(find.byType(LoginScreen))).canPop(),
+      isFalse,
+    );
+  });
+
+  testWidgets('登録画面は既存AuthServiceへ入力値を渡す', (tester) async {
+    final repository = _FakeAuthRepository();
+    await tester.pumpWidget(
+      MyApp(authService: AuthService(repository: repository)),
+    );
+    await tester.tap(find.text(AppStrings.loginSignUpPrompt));
+    await tester.pumpAndSettle();
+
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), '  たけし  ');
+    await tester.enterText(fields.at(1), '  takeshi@example.com  ');
+    await tester.enterText(fields.at(2), 'password8');
+    await tester.enterText(fields.at(3), 'password8');
+    await tester.ensureVisible(find.text(AppStrings.signUpSubmit));
+    await tester.tap(find.text(AppStrings.signUpSubmit));
+    await tester.pumpAndSettle();
+
+    expect(repository.signUpCallCount, 1);
+    expect(repository.signUpDisplayName, 'たけし');
+    expect(repository.signUpEmail, 'takeshi@example.com');
+    expect(find.text(AppStrings.signUpConfirmationPending), findsOneWidget);
   });
 
   testWidgets('既存セッションのユーザーIDがあればホームを初期表示する', (tester) async {
@@ -251,6 +322,9 @@ class _FakeAuthRepository implements AuthRepository {
   bool _hasActiveSession;
   int signInCallCount = 0;
   int signOutCallCount = 0;
+  int signUpCallCount = 0;
+  String? signUpDisplayName;
+  String? signUpEmail;
 
   @override
   bool get hasActiveSession => _hasActiveSession;
@@ -285,7 +359,10 @@ class _FakeAuthRepository implements AuthRepository {
     required String displayName,
     required String email,
     required String password,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    signUpCallCount++;
+    signUpDisplayName = displayName;
+    signUpEmail = email;
+    return const AuthSignUpResponse(userId: 'new-user', hasSession: false);
   }
 }
