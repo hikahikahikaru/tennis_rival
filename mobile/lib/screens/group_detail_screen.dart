@@ -72,6 +72,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       MaterialPageRoute(
         builder: (context) => GroupMemberStatsScreen(
           member: member,
+          groupId: group.id,
           groupName: group.name,
         ),
       ),

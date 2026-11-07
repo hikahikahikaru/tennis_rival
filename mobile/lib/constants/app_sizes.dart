@@ -133,6 +133,11 @@ class AppSizes {
   static const double memberStatsBlockSpacing = 12.0;
   static const double memberStatsLabelSpacing = 4.0;
 
+  // MatchSortBarで使用するサイズ
+  static const double matchSortChipSpacing = 8.0;
+  static const int matchSortPeriodFirstYear = 1990;
+  static const int matchPeriodInputLength = 8;
+
   // 余白・すき間のサイズ（spacingSmall = 4.0の下に追加）
   static const double spacingMedium = 12.0;
   static const double spacingLarge = 24.0;
