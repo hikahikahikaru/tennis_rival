@@ -52,6 +52,36 @@ void main() {
     }
   });
 
+  testWidgets('登録リンクを同一フレームで連続実行しても登録画面を重複表示しない', (tester) async {
+    await tester.pumpWidget(
+      MyApp(authService: AuthService(repository: _FakeAuthRepository())),
+    );
+
+    final loginScreen = tester.widget<LoginScreen>(find.byType(LoginScreen));
+    loginScreen.onSignUpPressed!.call();
+    loginScreen.onSignUpPressed!.call();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SignUpScreen), findsOneWidget);
+    await tester.ensureVisible(find.text(AppStrings.signUpLoginPrompt));
+    await tester.tap(find.text(AppStrings.signUpLoginPrompt));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(
+      Navigator.of(tester.element(find.byType(LoginScreen))).canPop(),
+      isFalse,
+    );
+
+    tester
+        .widget<LoginScreen>(find.byType(LoginScreen))
+        .onSignUpPressed!
+        .call();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SignUpScreen), findsOneWidget);
+  });
+
   testWidgets('登録画面からシステム戻る操作でログイン画面へ戻る', (tester) async {
     await tester.pumpWidget(
       MyApp(authService: AuthService(repository: _FakeAuthRepository())),
@@ -70,6 +100,103 @@ void main() {
       Navigator.of(tester.element(find.byType(LoginScreen))).canPop(),
       isFalse,
     );
+  });
+
+  testWidgets('ブラウザの戻る・進む操作でログイン画面と登録画面を復元する', (tester) async {
+    await tester.pumpWidget(
+      MyApp(authService: AuthService(repository: _FakeAuthRepository())),
+    );
+
+    await tester.tap(find.text(AppStrings.loginSignUpPrompt));
+    await tester.pumpAndSettle();
+    expect(find.byType(SignUpScreen), findsOneWidget);
+
+    // Webから届くRouteInformationを、ブラウザの戻る・進む操作として再現する。
+    for (var index = 0; index < 2; index++) {
+      await tester.binding.handlePushRoute('/login');
+      await tester.pumpAndSettle();
+      expect(find.byType(LoginScreen), findsOneWidget);
+      expect(find.byType(SignUpScreen), findsNothing);
+      expect(_currentRoutePath(tester), '/login');
+
+      await tester.binding.handlePushRoute('/sign-up');
+      await tester.pumpAndSettle();
+      expect(find.byType(SignUpScreen), findsOneWidget);
+      expect(find.byType(LoginScreen), findsNothing);
+      expect(_currentRoutePath(tester), '/sign-up');
+    }
+  });
+
+  testWidgets('登録処理中はブラウザの戻る要求を拒否し完了後は戻れる', (tester) async {
+    final signUpCompleter = Completer<AuthSignUpResponse>();
+    final repository = _FakeAuthRepository(signUpCompleter: signUpCompleter);
+    await tester.pumpWidget(
+      MyApp(
+        authService: AuthService(repository: repository),
+        onAuthenticated: (_) {},
+        homeBuilder: (userId, _) => Text('home:$userId'),
+      ),
+    );
+
+    await tester.tap(find.text(AppStrings.loginSignUpPrompt));
+    await tester.pumpAndSettle();
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), 'たけし');
+    await tester.enterText(fields.at(1), 'takeshi@example.com');
+    await tester.enterText(fields.at(2), 'password8');
+    await tester.enterText(fields.at(3), 'password8');
+    await tester.ensureVisible(find.text(AppStrings.signUpSubmit));
+    await tester.tap(find.text(AppStrings.signUpSubmit));
+    await tester.pump();
+
+    await tester.binding.handlePushRoute('/login');
+    await tester.pump();
+    expect(find.byType(SignUpScreen), findsOneWidget);
+    expect(find.byType(LoginScreen), findsNothing);
+    expect(_currentRoutePath(tester), '/sign-up');
+
+    signUpCompleter.complete(
+      const AuthSignUpResponse(userId: 'new-user', hasSession: false),
+    );
+    await tester.pumpAndSettle();
+    await tester.binding.handlePushRoute('/login');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byType(SignUpScreen), findsNothing);
+    expect(_currentRoutePath(tester), '/login');
+
+    // 登録Futureの完了後にだけログインでき、2つの認証通信は並行しない。
+    await _enterLoginInput(tester);
+    await tester.tap(find.text('ログインする'));
+    await tester.pumpAndSettle();
+    expect(find.text('home:user-1'), findsOneWidget);
+    expect(repository.signUpCallCount, 1);
+    expect(repository.signInCallCount, 1);
+  });
+
+  testWidgets('未認証では登録URLを復元し認証済みではホームを優先する', (tester) async {
+    await tester.pumpWidget(
+      MyApp(authService: AuthService(repository: _FakeAuthRepository())),
+    );
+    await tester.binding.handlePushRoute('/sign-up');
+    await tester.pumpAndSettle();
+    expect(find.byType(SignUpScreen), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      MyApp(
+        authService: AuthService(repository: _FakeAuthRepository()),
+        initialUserId: 'restored-user',
+        homeBuilder: (userId, _) => Text('home:$userId'),
+      ),
+    );
+    await tester.binding.handlePushRoute('/sign-up');
+    await tester.pumpAndSettle();
+
+    expect(find.text('home:restored-user'), findsOneWidget);
+    expect(find.byType(SignUpScreen), findsNothing);
   });
 
   testWidgets('登録画面は既存AuthServiceへ入力値を渡す', (tester) async {
@@ -304,6 +431,11 @@ Future<void> _enterLoginInput(WidgetTester tester) async {
   await tester.enterText(find.byType(TextField).at(1), 'password8');
 }
 
+String _currentRoutePath(WidgetTester tester) {
+  final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+  return app.routeInformationProvider!.value.uri.path;
+}
+
 class _FakeAuthRepository implements AuthRepository {
   _FakeAuthRepository({
     this.signInError,
@@ -312,6 +444,7 @@ class _FakeAuthRepository implements AuthRepository {
     this.clearSessionBeforeSignOutError = false,
     this.preserveSessionOnSuccess = false,
     this.signOutCompleter,
+    this.signUpCompleter,
   }) : _hasActiveSession = hasActiveSession;
 
   final Object? signInError;
@@ -319,6 +452,7 @@ class _FakeAuthRepository implements AuthRepository {
   final bool clearSessionBeforeSignOutError;
   final bool preserveSessionOnSuccess;
   final Completer<void>? signOutCompleter;
+  final Completer<AuthSignUpResponse>? signUpCompleter;
   bool _hasActiveSession;
   int signInCallCount = 0;
   int signOutCallCount = 0;
@@ -363,6 +497,8 @@ class _FakeAuthRepository implements AuthRepository {
     signUpCallCount++;
     signUpDisplayName = displayName;
     signUpEmail = email;
+    final completer = signUpCompleter;
+    if (completer != null) return completer.future;
     return const AuthSignUpResponse(userId: 'new-user', hasSession: false);
   }
 }

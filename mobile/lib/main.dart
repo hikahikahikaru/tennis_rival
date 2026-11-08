@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'constants/app_strings.dart';
 import 'constants/app_theme.dart';
 import 'constants/supabase_constants.dart';
+import 'navigation/browser_history.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/sign_up_screen.dart';
@@ -107,6 +108,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final AuthService _authService;
+  late final _AppRouterDelegate _routerDelegate;
+  late final _GuardedRouteInformationProvider _routeInformationProvider;
   String? _currentUserId;
   String? _authenticatedUserId;
   String? _loginNotice;
@@ -116,6 +119,25 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _authService = widget.authService ?? AuthService();
     _currentUserId = widget.initialUserId;
+    _routerDelegate = _AppRouterDelegate(
+      initialUserId: _currentUserId,
+      loginBuilder: _buildLoginScreen,
+      signUpBuilder: _buildSignUpScreen,
+      homeBuilder: _buildHomeScreen,
+    );
+    _routeInformationProvider = _GuardedRouteInformationProvider(
+      initialRouteInformation: RouteInformation(
+        uri: Uri.parse(
+          WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+        ),
+      ),
+      shouldReject: _routerDelegate.shouldRejectRouteInformation,
+      currentRouteInformation: () => RouteInformation(
+        uri: _AppRouteInformationParser.uriFor(
+          _routerDelegate.currentConfiguration,
+        ),
+      ),
+    );
   }
 
   Future<LoginSubmissionResult> _signIn({
@@ -169,18 +191,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void _openSignUp(BuildContext context) {
-    // 登録画面は未認証Navigatorに1枚だけ積み、戻る操作で元のログイン画面を再利用する。
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (signUpContext) => SignUpScreen(
-          onSubmit: _signUp,
-          onLoginPressed: () => Navigator.of(signUpContext).pop(),
-        ),
-      ),
-    );
-  }
-
   void _completeSignIn() {
     final userId = _authenticatedUserId;
     if (userId == null) return;
@@ -188,6 +198,7 @@ class _MyAppState extends State<MyApp> {
       _currentUserId = userId;
       _loginNotice = null;
     });
+    _routerDelegate.setAuthenticatedUser(userId);
     final onAuthenticated = widget.onAuthenticated;
     if (onAuthenticated != null) {
       onAuthenticated(userId);
@@ -209,6 +220,7 @@ class _MyAppState extends State<MyApp> {
         _loginNotice =
             result.isSuccess ? null : AppStrings.logoutSessionWarning;
       });
+      _routerDelegate.setAuthenticatedUser(null);
       return null;
     }
     // 成功応答でもセッションが残る場合は、完了とせずホームに留める。
@@ -218,23 +230,260 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     final userId = _currentUserId;
-    return MaterialApp(
+    return MaterialApp.router(
       // 認証境界を越えたときNavigatorも作り直し、保護画面の履歴を破棄する。
       key: ValueKey(
           userId == null ? 'unauthenticated' : 'authenticated:$userId'),
       title: 'Tennis Rival',
       theme: AppTheme.lightTheme,
-      home: userId == null
-          ? Builder(
-              builder: (loginContext) => LoginScreen(
-                onSubmit: _signIn,
-                onLoginSucceeded: _completeSignIn,
-                onSignUpPressed: () => _openSignUp(loginContext),
-                noticeMessage: _loginNotice,
-              ),
-            )
-          : widget.homeBuilder?.call(userId, _signOut) ??
-              HomeScreen(currentUserId: userId, onLogout: _signOut),
+      routeInformationProvider: _routeInformationProvider,
+      routeInformationParser: const _AppRouteInformationParser(),
+      routerDelegate: _routerDelegate,
+    );
+  }
+
+  Widget _buildLoginScreen(BuildContext context) {
+    return LoginScreen(
+      onSubmit: _signIn,
+      onLoginSucceeded: _completeSignIn,
+      onSignUpPressed: () {
+        // URL変更を明示的なナビゲーションとしてブラウザ履歴へ追加する。
+        Router.navigate(context, _routerDelegate.openSignUp);
+      },
+      noticeMessage: _loginNotice,
+    );
+  }
+
+  Widget _buildSignUpScreen(BuildContext context) {
+    return SignUpScreen(
+      onSubmit: _signUp,
+      onSubmissionStateChanged: _routerDelegate.setSignUpSubmitting,
+      onLoginPressed: () {
+        // 画面内の戻る導線では現在の履歴を置換し、往復で履歴を増やさない。
+        Router.neglect(context, _routerDelegate.closeSignUp);
+      },
+    );
+  }
+
+  Widget _buildHomeScreen(BuildContext context, String userId) {
+    return widget.homeBuilder?.call(userId, _signOut) ??
+        HomeScreen(currentUserId: userId, onLogout: _signOut);
+  }
+}
+
+enum _AppRoutePath { login, signUp, home }
+
+class _AppRouteInformationParser extends RouteInformationParser<_AppRoutePath> {
+  const _AppRouteInformationParser();
+
+  static Uri uriFor(_AppRoutePath path) => switch (path) {
+        _AppRoutePath.login => Uri(path: '/login'),
+        _AppRoutePath.signUp => Uri(path: '/sign-up'),
+        _AppRoutePath.home => Uri(path: '/'),
+      };
+
+  @override
+  Future<_AppRoutePath> parseRouteInformation(
+    RouteInformation routeInformation,
+  ) async {
+    return switch (routeInformation.uri.path) {
+      '/sign-up' => _AppRoutePath.signUp,
+      '/' => _AppRoutePath.home,
+      _ => _AppRoutePath.login,
+    };
+  }
+
+  @override
+  RouteInformation restoreRouteInformation(_AppRoutePath configuration) {
+    return RouteInformation(uri: uriFor(configuration));
+  }
+}
+
+class _GuardedRouteInformationProvider
+    extends PlatformRouteInformationProvider {
+  _GuardedRouteInformationProvider({
+    required super.initialRouteInformation,
+    required this.shouldReject,
+    required this.currentRouteInformation,
+  });
+
+  final bool Function(RouteInformation routeInformation) shouldReject;
+  final RouteInformation Function() currentRouteInformation;
+  var _historyIndex = 0;
+  var _isRestoringRejectedNavigation = false;
+
+  static const _historyIndexKey = 'authHistoryIndex';
+
+  int? _readHistoryIndex(RouteInformation routeInformation) {
+    final state = routeInformation.state;
+    if (state is! Map) return null;
+    return (state[_historyIndexKey] as num?)?.toInt();
+  }
+
+  RouteInformation _withHistoryIndex(
+    RouteInformation routeInformation,
+    int historyIndex,
+  ) {
+    return RouteInformation(
+      uri: routeInformation.uri,
+      state: <String, Object?>{_historyIndexKey: historyIndex},
+    );
+  }
+
+  @override
+  void routerReportsNewRouteInformation(
+    RouteInformation routeInformation, {
+    RouteInformationReportingType type = RouteInformationReportingType.none,
+  }) {
+    if (type == RouteInformationReportingType.navigate) {
+      _historyIndex++;
+    }
+    super.routerReportsNewRouteInformation(
+      _withHistoryIndex(routeInformation, _historyIndex),
+      type: type,
+    );
+  }
+
+  @override
+  Future<bool> didPushRouteInformation(RouteInformation routeInformation) {
+    if (shouldReject(routeInformation)) {
+      if (_isRestoringRejectedNavigation) return Future<bool>.value(true);
+
+      final targetIndex = _readHistoryIndex(routeInformation);
+      final delta = targetIndex == null ? 0 : _historyIndex - targetIndex;
+      final restored = delta != 0 && restoreBrowserHistoryBy(delta);
+      if (restored) {
+        // 復旧先のpopstateを待ち、同じ戻る要求の連続処理を防止する。
+        _isRestoringRejectedNavigation = true;
+      } else {
+        // 非Webや履歴番号がない直接URL変更では、現在のURLで置換する。
+        routerReportsNewRouteInformation(
+          currentRouteInformation(),
+          type: RouteInformationReportingType.neglect,
+        );
+      }
+      return Future<bool>.value(true);
+    }
+
+    final targetIndex = _readHistoryIndex(routeInformation);
+    if (targetIndex != null) {
+      _historyIndex = targetIndex;
+    }
+    _isRestoringRejectedNavigation = false;
+    return super.didPushRouteInformation(routeInformation);
+  }
+}
+
+class _AppRouterDelegate extends RouterDelegate<_AppRoutePath>
+    with ChangeNotifier, PopNavigatorRouterDelegateMixin<_AppRoutePath> {
+  _AppRouterDelegate({
+    required String? initialUserId,
+    required this.loginBuilder,
+    required this.signUpBuilder,
+    required this.homeBuilder,
+  }) : _userId = initialUserId;
+
+  final WidgetBuilder loginBuilder;
+  final WidgetBuilder signUpBuilder;
+  final Widget Function(BuildContext context, String userId) homeBuilder;
+
+  @override
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  String? _userId;
+  var _isSignUpOpen = false;
+  var _isSignUpSubmitting = false;
+
+  @override
+  _AppRoutePath get currentConfiguration {
+    if (_userId != null) return _AppRoutePath.home;
+    return _isSignUpOpen ? _AppRoutePath.signUp : _AppRoutePath.login;
+  }
+
+  void openSignUp() {
+    // 同一フレーム内で複数回要求されてもページは1枚だけにする。
+    if (_userId != null || _isSignUpOpen) return;
+    _isSignUpOpen = true;
+    notifyListeners();
+  }
+
+  void closeSignUp() {
+    if (!_isSignUpOpen || _isSignUpSubmitting) return;
+    _isSignUpOpen = false;
+    notifyListeners();
+  }
+
+  void setSignUpSubmitting(bool isSubmitting) {
+    _isSignUpSubmitting = isSubmitting;
+  }
+
+  void setAuthenticatedUser(String? userId) {
+    _userId = userId;
+    _isSignUpOpen = false;
+    _isSignUpSubmitting = false;
+    notifyListeners();
+  }
+
+  bool shouldRejectRouteInformation(RouteInformation routeInformation) {
+    return _isSignUpOpen &&
+        _isSignUpSubmitting &&
+        routeInformation.uri.path != '/sign-up';
+  }
+
+  @override
+  Future<void> setNewRoutePath(_AppRoutePath configuration) async {
+    if (_userId != null) {
+      _isSignUpOpen = false;
+      return;
+    }
+    if (_isSignUpOpen &&
+        _isSignUpSubmitting &&
+        configuration != _AppRoutePath.signUp) {
+      return;
+    }
+    _isSignUpOpen = configuration == _AppRoutePath.signUp;
+  }
+
+  @override
+  Future<bool> popRoute() async {
+    if (_isSignUpOpen) {
+      if (_isSignUpSubmitting) return true;
+      final navigator = navigatorKey.currentState;
+      return navigator?.maybePop() ?? false;
+    }
+    return super.popRoute();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final userId = _userId;
+    return Navigator(
+      key: navigatorKey,
+      pages: [
+        if (userId == null)
+          MaterialPage<void>(
+            key: const ValueKey('login'),
+            name: '/login',
+            child: Builder(builder: loginBuilder),
+          )
+        else
+          MaterialPage<void>(
+            key: ValueKey('home:$userId'),
+            name: '/',
+            child: Builder(builder: (context) => homeBuilder(context, userId)),
+          ),
+        if (userId == null && _isSignUpOpen)
+          MaterialPage<void>(
+            key: const ValueKey('sign-up'),
+            name: '/sign-up',
+            child: Builder(builder: signUpBuilder),
+          ),
+      ],
+      onDidRemovePage: (page) {
+        if (page.name != '/sign-up' || !_isSignUpOpen) return;
+        // AppBarやAndroidの戻る操作も履歴を増やさずログインへ戻す。
+        Router.neglect(context, closeSignUp);
+      },
     );
   }
 }
