@@ -32,11 +32,13 @@ typedef SignUpSubmitCallback = Future<SignUpSubmissionResult> Function({
 class SignUpScreen extends StatefulWidget {
   final SignUpSubmitCallback onSubmit;
   final VoidCallback? onLoginPressed;
+  final ValueChanged<bool>? onSubmissionStateChanged;
 
   const SignUpScreen({
     super.key,
     required this.onSubmit,
     this.onLoginPressed,
+    this.onSubmissionStateChanged,
   });
 
   @override
@@ -87,6 +89,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (errors.isNotEmpty) return;
 
     setState(() => _isSubmitting = true);
+    // Router側にも処理状態を伝え、ブラウザ履歴による離脱も同じ条件で抑止する。
+    final onSubmissionStateChanged = widget.onSubmissionStateChanged;
+    onSubmissionStateChanged?.call(true);
+    SignUpSubmissionStatus nextStatus;
     try {
       final result = await widget.onSubmit(
         displayName: displayName,
@@ -94,18 +100,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
         password: password,
         confirmPassword: confirmPassword,
       );
-      if (!mounted) return;
-      setState(() {
-        _isSubmitting = false;
-        _submissionStatus = result.status;
-      });
+      nextStatus = result.status;
     } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isSubmitting = false;
-        _submissionStatus = SignUpSubmissionStatus.failed;
-      });
+      nextStatus = SignUpSubmissionStatus.failed;
+    } finally {
+      // 画面状態にかかわらずRouter側の離脱ロックを必ず解除する。
+      onSubmissionStateChanged?.call(false);
     }
+    if (!mounted) return;
+    setState(() {
+      _isSubmitting = false;
+      _submissionStatus = nextStatus;
+    });
   }
 
   Map<_SignUpField, String> _validate({
@@ -193,116 +199,121 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     final feedbackMessage = _feedbackMessage;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.appName)),
-      body: SafeArea(
-        // キーボード表示時も入力欄と操作をたどれるよう画面全体をスクロールさせる。
-        child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: EdgeInsets.fromLTRB(
-            AppSizes.screenPadding,
-            AppSizes.screenPadding,
-            AppSizes.screenPadding,
-            AppSizes.screenPadding + MediaQuery.viewInsetsOf(context).bottom,
-          ),
-          child: AutofillGroup(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  AppStrings.signUpTitle,
-                  style: AppTextStyles.signUpTitle,
-                ),
-                const SizedBox(height: AppSizes.spacingSmall),
-                const Text(
-                  AppStrings.signUpDescription,
-                  style: AppTextStyles.signUpDescription,
-                ),
-                const SizedBox(height: AppSizes.spacingLarge),
-                LabeledTextField(
-                  label: AppStrings.signUpDisplayNameLabel,
-                  hint: AppStrings.signUpDisplayNameHint,
-                  controller: _displayNameController,
-                  isRequired: true,
-                  errorText: _fieldErrors[_SignUpField.displayName],
-                  autofillHints: const [AutofillHints.name],
-                  enabled: !_isSubmitting && !_isSuccessful,
-                  onChanged: (_) => _clearError(_SignUpField.displayName),
-                ),
-                const SizedBox(height: AppSizes.scoreSectionSpacing),
-                LabeledTextField(
-                  label: AppStrings.signUpEmailLabel,
-                  hint: AppStrings.signUpEmailHint,
-                  controller: _emailController,
-                  isRequired: true,
-                  errorText: _fieldErrors[_SignUpField.email],
-                  keyboardType: TextInputType.emailAddress,
-                  autofillHints: const [AutofillHints.email],
-                  enabled: !_isSubmitting && !_isSuccessful,
-                  onChanged: (_) => _clearError(_SignUpField.email),
-                ),
-                const SizedBox(height: AppSizes.scoreSectionSpacing),
-                LabeledTextField(
-                  label: AppStrings.signUpPasswordLabel,
-                  hint: AppStrings.signUpPasswordHint,
-                  controller: _passwordController,
-                  isRequired: true,
-                  errorText: _fieldErrors[_SignUpField.password],
-                  obscureText: _obscurePassword,
-                  autofillHints: const [AutofillHints.newPassword],
-                  enabled: !_isSubmitting && !_isSuccessful,
-                  suffixIcon: _passwordVisibilityButton(
+    return PopScope(
+      // 登録結果が確定する前の離脱を防ぎ、別画面の認証処理との競合を避ける。
+      canPop: !_isSubmitting,
+      child: Scaffold(
+        appBar: AppBar(title: const Text(AppStrings.appName)),
+        body: SafeArea(
+          // キーボード表示時も入力欄と操作をたどれるよう画面全体をスクロールさせる。
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.fromLTRB(
+              AppSizes.screenPadding,
+              AppSizes.screenPadding,
+              AppSizes.screenPadding,
+              AppSizes.screenPadding + MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: AutofillGroup(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    AppStrings.signUpTitle,
+                    style: AppTextStyles.signUpTitle,
+                  ),
+                  const SizedBox(height: AppSizes.spacingSmall),
+                  const Text(
+                    AppStrings.signUpDescription,
+                    style: AppTextStyles.signUpDescription,
+                  ),
+                  const SizedBox(height: AppSizes.spacingLarge),
+                  LabeledTextField(
+                    label: AppStrings.signUpDisplayNameLabel,
+                    hint: AppStrings.signUpDisplayNameHint,
+                    controller: _displayNameController,
+                    isRequired: true,
+                    errorText: _fieldErrors[_SignUpField.displayName],
+                    autofillHints: const [AutofillHints.name],
+                    enabled: !_isSubmitting && !_isSuccessful,
+                    onChanged: (_) => _clearError(_SignUpField.displayName),
+                  ),
+                  const SizedBox(height: AppSizes.scoreSectionSpacing),
+                  LabeledTextField(
+                    label: AppStrings.signUpEmailLabel,
+                    hint: AppStrings.signUpEmailHint,
+                    controller: _emailController,
+                    isRequired: true,
+                    errorText: _fieldErrors[_SignUpField.email],
+                    keyboardType: TextInputType.emailAddress,
+                    autofillHints: const [AutofillHints.email],
+                    enabled: !_isSubmitting && !_isSuccessful,
+                    onChanged: (_) => _clearError(_SignUpField.email),
+                  ),
+                  const SizedBox(height: AppSizes.scoreSectionSpacing),
+                  LabeledTextField(
+                    label: AppStrings.signUpPasswordLabel,
+                    hint: AppStrings.signUpPasswordHint,
+                    controller: _passwordController,
+                    isRequired: true,
+                    errorText: _fieldErrors[_SignUpField.password],
                     obscureText: _obscurePassword,
-                    onPressed: () => setState(
-                      () => _obscurePassword = !_obscurePassword,
-                    ),
-                  ),
-                  onChanged: (_) => _clearError(_SignUpField.password),
-                ),
-                const SizedBox(height: AppSizes.scoreSectionSpacing),
-                LabeledTextField(
-                  label: AppStrings.signUpConfirmPasswordLabel,
-                  hint: AppStrings.signUpConfirmPasswordHint,
-                  controller: _confirmPasswordController,
-                  isRequired: true,
-                  errorText: _fieldErrors[_SignUpField.confirmPassword],
-                  obscureText: _obscureConfirmPassword,
-                  autofillHints: const [AutofillHints.newPassword],
-                  enabled: !_isSubmitting && !_isSuccessful,
-                  textInputAction: TextInputAction.done,
-                  suffixIcon: _passwordVisibilityButton(
-                    obscureText: _obscureConfirmPassword,
-                    onPressed: () => setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                    ),
-                  ),
-                  onChanged: (_) => _clearError(_SignUpField.confirmPassword),
-                ),
-                if (feedbackMessage != null) ...[
-                  const SizedBox(height: AppSizes.spacingMedium),
-                  Semantics(
-                    liveRegion: true,
-                    child: Text(
-                      feedbackMessage,
-                      style: AppTextStyles.signUpFeedback.copyWith(
-                        color: _isSuccessful
-                            ? AppColors.primary
-                            : AppColors.requiredMark,
+                    autofillHints: const [AutofillHints.newPassword],
+                    enabled: !_isSubmitting && !_isSuccessful,
+                    suffixIcon: _passwordVisibilityButton(
+                      obscureText: _obscurePassword,
+                      onPressed: () => setState(
+                        () => _obscurePassword = !_obscurePassword,
                       ),
                     ),
+                    onChanged: (_) => _clearError(_SignUpField.password),
+                  ),
+                  const SizedBox(height: AppSizes.scoreSectionSpacing),
+                  LabeledTextField(
+                    label: AppStrings.signUpConfirmPasswordLabel,
+                    hint: AppStrings.signUpConfirmPasswordHint,
+                    controller: _confirmPasswordController,
+                    isRequired: true,
+                    errorText: _fieldErrors[_SignUpField.confirmPassword],
+                    obscureText: _obscureConfirmPassword,
+                    autofillHints: const [AutofillHints.newPassword],
+                    enabled: !_isSubmitting && !_isSuccessful,
+                    textInputAction: TextInputAction.done,
+                    suffixIcon: _passwordVisibilityButton(
+                      obscureText: _obscureConfirmPassword,
+                      onPressed: () => setState(
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
+                      ),
+                    ),
+                    onChanged: (_) => _clearError(_SignUpField.confirmPassword),
+                  ),
+                  if (feedbackMessage != null) ...[
+                    const SizedBox(height: AppSizes.spacingMedium),
+                    Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        feedbackMessage,
+                        style: AppTextStyles.signUpFeedback.copyWith(
+                          color: _isSuccessful
+                              ? AppColors.primary
+                              : AppColors.requiredMark,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSizes.spacingLarge),
+                  PrimaryButton(
+                    label: _submitButtonLabel,
+                    onPressed: _isSubmitting || _isSuccessful ? null : _submit,
+                  ),
+                  const SizedBox(height: AppSizes.spacingMedium),
+                  TextButton(
+                    onPressed: _isSubmitting ? null : widget.onLoginPressed,
+                    child: const Text(AppStrings.signUpLoginPrompt),
                   ),
                 ],
-                const SizedBox(height: AppSizes.spacingLarge),
-                PrimaryButton(
-                  label: _submitButtonLabel,
-                  onPressed: _isSubmitting || _isSuccessful ? null : _submit,
-                ),
-                const SizedBox(height: AppSizes.spacingMedium),
-                TextButton(
-                  onPressed: _isSubmitting ? null : widget.onLoginPressed,
-                  child: const Text(AppStrings.signUpLoginPrompt),
-                ),
-              ],
+              ),
             ),
           ),
         ),

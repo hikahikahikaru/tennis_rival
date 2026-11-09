@@ -177,6 +177,65 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets(
+      'prevents leaving while registering and allows it after completion',
+      (tester) async {
+    final response = Completer<SignUpSubmissionResult>();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (signUpContext) => SignUpScreen(
+                    onSubmit: ({
+                      required displayName,
+                      required email,
+                      required password,
+                      required confirmPassword,
+                    }) =>
+                        response.future,
+                    onLoginPressed: () => Navigator.of(signUpContext).pop(),
+                  ),
+                ),
+              ),
+              child: const Text('open sign up'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open sign up'));
+    await tester.pumpAndSettle();
+    await _enterValidInput(tester);
+    await _tapSubmit(tester);
+
+    expect(find.text('登録中...'), findsOneWidget);
+    final loginButton = tester.widget<TextButton>(find.byType(TextButton));
+    expect(loginButton.onPressed, isNull);
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(SignUpScreen), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byType(SignUpScreen), findsOneWidget);
+
+    response.complete(
+      const SignUpSubmissionResult(SignUpSubmissionStatus.failed),
+    );
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SignUpScreen), findsNothing);
+    expect(find.text('open sign up'), findsOneWidget);
+  });
+
   testWidgets('shows privacy-safe email confirmation guidance', (tester) async {
     await tester.pumpWidget(_subject(onSubmit: _successfulSubmit));
     await _enterValidInput(tester);
